@@ -6,6 +6,8 @@
 
 | 技能名称 | 描述 |
 |---------|------|
+| [git-workflow-enhanced](./skills/git-workflow-enhanced/SKILL.md) | 完整的 Git 工作流自动化，支持分支创建与 Conventional Commits |
+| [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | pnpm monorepo 变更集文件自动生成与提交 |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | 将 Rush.js monorepo 迁移到 Nx + pnpm workspace + Changesets |
 
 ## 安装
@@ -17,6 +19,8 @@
 npx skills add hz-9/skills
 
 # 仅安装指定技能
+npx skills add hz-9/skills --skill git-workflow-enhanced
+npx skills add hz-9/skills --skill pnpm-changeset-workflow
 npx skills add hz-9/skills --skill rush-to-nx
 ```
 
@@ -34,6 +38,8 @@ cp -r skills/<skill-name> ~/.qoder/skills/<skill-name>
 bash scripts/install.sh
 
 # 安装指定技能
+bash scripts/install.sh git-workflow-enhanced
+bash scripts/install.sh pnpm-changeset-workflow
 bash scripts/install.sh rush-to-nx
 ```
 

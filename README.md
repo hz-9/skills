@@ -6,6 +6,8 @@ Each skill is a self-contained directory following the [agent-skills specificati
 
 | Name | Description |
 |------|-------------|
+| [git-workflow-enhanced](./skills/git-workflow-enhanced/SKILL.md) | Complete Git workflow automation with branch creation and Conventional Commits |
+| [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | Automate changeset file generation and commit for pnpm monorepos |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | Migrate Rush.js monorepo to Nx + pnpm workspace + Changesets |
 
 ## Installation
@@ -17,6 +19,8 @@ Each skill is a self-contained directory following the [agent-skills specificati
 npx skills add hz-9/skills
 
 # Install a specific skill
+npx skills add hz-9/skills --skill git-workflow-enhanced
+npx skills add hz-9/skills --skill pnpm-changeset-workflow
 npx skills add hz-9/skills --skill rush-to-nx
 ```
 
@@ -34,6 +38,8 @@ cp -r skills/<skill-name> ~/.qoder/skills/<skill-name>
 bash scripts/install.sh
 
 # Install a specific skill
+bash scripts/install.sh git-workflow-enhanced
+bash scripts/install.sh pnpm-changeset-workflow
 bash scripts/install.sh rush-to-nx
 ```
 
