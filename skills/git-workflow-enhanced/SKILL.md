@@ -1,6 +1,6 @@
 ---
 name: git-workflow-enhanced
-description: Complete Git workflow automation including branch creation, commit message generation, and auto-commit following Conventional Commits specification. Use when the user wants to create feature branches, generate commit messages, or streamline Git operations.
+description: 完整的 Git 工作流自动化，包括分支创建、commit message 生成和自动提交，遵循 Conventional Commits 规范。当用户想要创建功能分支、生成 commit message 或简化 Git 操作时使用。
 ---
 
 # Git Workflow Enhanced
