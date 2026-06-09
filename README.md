@@ -74,6 +74,44 @@ cp -r templates skills/<your-skill-name>
 - Body provides complete usage guide, steps, and examples
 - Long documents should be split into `REFERENCE.md` and `EXAMPLES.md`
 
+## Commands
+
+The repository also provides reusable Qoder commands in the [commands/](./commands/) directory. Commands are `.md` files that can be invoked via the command palette in Qoder.
+
+### Sync Commands from GitHub
+
+Run the following script to download the latest commands from the GitHub repository to your local commands directory:
+
+```bash
+bash scripts/sync-commands.sh
+```
+
+By default, commands are synced to `~/.agents/commands/`. You can override the target directory by setting the `COMMANDS_DIR` environment variable:
+
+```bash
+# Sync to a custom directory
+COMMANDS_DIR=/path/to/commands bash scripts/sync-commands.sh
+```
+
+### One-liner (no clone required)
+
+Run directly from the internet without cloning the repository:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/sync-commands.sh)
+```
+
+With a custom directory:
+
+```bash
+COMMANDS_DIR=~/.qoder/commands bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/sync-commands.sh)
+```
+
+The script will:
+1. Fetch the list of command files from the GitHub repository's `commands/` directory
+2. Download each file to the target directory
+3. Remove any local command files that no longer exist in the remote (keeping your directory in sync)
+
 ## License
 
 MIT
