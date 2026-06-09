@@ -74,6 +74,44 @@ cp -r templates skills/<your-skill-name>
 - 正文提供完整的使用指南、步骤和示例
 - 长文档请拆分到 `REFERENCE.md`、`EXAMPLES.md` 中
 
+## 命令
+
+仓库的 [commands/](./commands/) 目录下提供可复用的 Qoder 命令。命令是 `.md` 文件，可通过 Qoder 的命令面板调用。
+
+### 从 GitHub 同步命令
+
+运行以下脚本从 GitHub 仓库下载最新命令到本地命令目录：
+
+```bash
+bash scripts/sync-commands.sh
+```
+
+默认情况下，命令会同步到 `~/.agents/commands/`。你可以通过设置 `COMMANDS_DIR` 环境变量来覆盖目标目录：
+
+```bash
+# 同步到自定义目录
+COMMANDS_DIR=/path/to/commands bash scripts/sync-commands.sh
+```
+
+### 一行命令（无需克隆）
+
+直接从网络运行，无需克隆仓库：
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/sync-commands.sh)
+```
+
+指定自定义目录：
+
+```bash
+COMMANDS_DIR=~/.qoder/commands bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/sync-commands.sh)
+```
+
+该脚本将会：
+1. 从 GitHub 仓库的 `commands/` 目录获取命令文件列表
+2. 将每个文件下载到目标目录
+3. 移除本地已不存在于远程的命令文件（保持目录同步）
+
 ## 许可证
 
 MIT
