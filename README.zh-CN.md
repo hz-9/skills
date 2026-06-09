@@ -6,9 +6,14 @@
 
 | 技能名称 | 描述 |
 |---------|------|
-| [git-workflow-enhanced](./skills/git-workflow-enhanced/SKILL.md) | 完整的 Git 工作流自动化，支持分支创建与 Conventional Commits |
+| [git-commit-helper](./skills/git-commit-helper/SKILL.md) | 遵循 Conventional Commits 规范智能生成 Git commit message |
+| [git-workflow-enhanced](./skills/git-workflow-enhanced/SKILL.md) | 全自动 Git 工作流：commit message → 分支 → prepare-commit-msg 钩子 |
+| [grill-me](./skills/grill-me/SKILL.md) | 持续追问拷问计划与设计，遍历决策树每个分支 |
+| [grill-with-docs](./skills/grill-with-docs/SKILL.md) | 结合领域模型挑战方案，即时更新文档与 ADR |
 | [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | pnpm monorepo 变更集文件自动生成与提交 |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | 将 Rush.js monorepo 迁移到 Nx + pnpm workspace + Changesets |
+| [write-a-skill](./skills/write-a-skill/SKILL.md) | 创建符合规范的 agent 技能，含结构和资源打包 |
+| [zoom-out](./skills/zoom-out/SKILL.md) | 缩小视角，获取代码模块地图和高层次上下文 |
 
 ## 安装
 
@@ -19,9 +24,14 @@
 npx skills add hz-9/skills
 
 # 仅安装指定技能
+npx skills add hz-9/skills --skill git-commit-helper
 npx skills add hz-9/skills --skill git-workflow-enhanced
+npx skills add hz-9/skills --skill grill-me
+npx skills add hz-9/skills --skill grill-with-docs
 npx skills add hz-9/skills --skill pnpm-changeset-workflow
 npx skills add hz-9/skills --skill rush-to-nx
+npx skills add hz-9/skills --skill write-a-skill
+npx skills add hz-9/skills --skill zoom-out
 ```
 
 ### 方式二：手动复制
@@ -38,9 +48,14 @@ cp -r skills/<skill-name> ~/.qoder/skills/<skill-name>
 bash scripts/install.sh
 
 # 安装指定技能
+bash scripts/install.sh git-commit-helper
 bash scripts/install.sh git-workflow-enhanced
+bash scripts/install.sh grill-me
+bash scripts/install.sh grill-with-docs
 bash scripts/install.sh pnpm-changeset-workflow
 bash scripts/install.sh rush-to-nx
+bash scripts/install.sh write-a-skill
+bash scripts/install.sh zoom-out
 ```
 
 ## 创建新技能
