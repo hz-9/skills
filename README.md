@@ -40,6 +40,15 @@ Supports `SKILLS_DIR` environment variable to override the target path (default 
 bash scripts/install-skills.sh
 ```
 
+One-liner (no clone required):
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-skills.sh)
+
+# Specify a custom directory:
+SKILLS_DIR=~/.qoder/skills bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-skills.sh)
+```
+
 ### Deprecated
 
 | Name | Description |
