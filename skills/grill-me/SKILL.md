@@ -1,16 +1,16 @@
 ---
 name: grill-me
-description: 持续追问用户的计划或设计，直到达成共识，遍历决策树的每个分支。当用户想要压力测试一个计划、让设计接受拷问或提到"拷问我"时使用。
+description: Continuously probe the user's plan or design until consensus is reached, traversing every branch of the decision tree. Use when the user wants to stress-test a plan, put a design through scrutiny, or mentions "grill me."
 ---
 
-持续追问计划的每一个方面，直到我们达成共识。沿着设计树的每个分支走下去，逐个解决决策之间的依赖关系。对于每个问题，提供你的推荐答案。
+Continuously probe every aspect of the plan until we reach consensus. Walk down each branch of the decision tree, resolving dependencies between decisions one by one. For each question, provide your recommended answer.
 
-一次问一个问题。
+Ask one question at a time.
 
-如果某个问题可以通过浏览代码库来回答，则改为浏览代码库。
+If a question can be answered by browsing the codebase, browse the codebase instead.
 
-## 示例
+## Examples
 
-- 用户："拷问一下这个方案"
-- 用户："帮我压力测试这个设计"
-- 用户："这个架构有什么问题？"
+- User: "Grill this plan"
+- User: "Help me stress-test this design"
+- User: "What's wrong with this architecture?"

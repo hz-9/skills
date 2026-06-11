@@ -1,0 +1,96 @@
+---
+description: 将 skills.zh-CN/ 和 commands.zh-CN/ 中的中文内容翻译同步为 skills/ 和 commands/ 中的英文内容。
+---
+
+## 关键路径
+
+| 路径 | 说明 |
+|------|------|
+| `skills.zh-CN/` | 中文技能源目录（开发标准版本） |
+| `commands.zh-CN/` | 中文命令源目录（开发标准版本） |
+| `skills/` | 英文技能目标目录 |
+| `commands/` | 英文命令目标目录 |
+| `deprecated/skills/` | 英文已废弃技能目录 |
+| `deprecated/skills.zh-CN/` | 中文已废弃技能目录 |
+| `deprecated/commands/` | 英文已废弃命令目录 |
+| `deprecated/commands.zh-CN/` | 中文已废弃命令目录 |
+
+---
+
+## 同步规则
+
+### 通用规则
+
+- **源文件必须存在** — 仅当 `skills.zh-CN/` 或 `commands.zh-CN/` 中有文件时，才同步到对应的英文目录
+- **新增** — 英文目录中不存在但中文源中存在的文件 → 创建并翻译
+- **更新** — 英文目录中已存在且中文源已变更的文件 → 重新翻译覆盖
+- **废弃** — 英文目录中存在但中文源中已不存在的文件 → 移入对应的 `deprecated/` 目录
+- **文件路径** — 保持目录结构一致：`skills.zh-CN/<name>/` → `skills/<name>/`，`commands.zh-CN/<name>.md` → `commands/<name>.md`
+
+### 翻译约束
+
+- **Markdown 结构** — 保留所有标题层级、表格格式、分隔线
+- **链接路径** — `[...](./skills/...)`、`[...](./commands/...)` 等相对路径 **不翻译、不修改**
+- **代码块** — bash 脚本块、内联代码 `` ` `` 内的内容 **不翻译**
+- **技术内容** — 命令行、配置项、文件路径、JSON/YAML 内容 **不翻译**
+- **技能/命令名称** — 表格第一列、目录名、frontmatter 中的 `name` 字段 **不翻译**
+- **纯中文内容** — 正文中的中文描述、说明、列表项需翻译为英文
+- **frontmatter** — `description` 字段中的中文需翻译为英文
+
+---
+
+## Task A: 同步 Skills
+
+### A.1 扫描源目录
+
+扫描 `skills.zh-CN/` 目录，收集每个子目录下的所有 `.md` 文件（含子目录中的附属文件如 `ADR-FORMAT.md`、`CONTEXT-FORMAT.md`、`REFERENCE.md`、`EXAMPLES.md` 等）。
+
+### A.2 逐文件同步
+
+对每个待同步的技能文件：
+
+| 情况 | 操作 |
+|------|------|
+| **新增** — `skills/<name>/` 中不存在对应文件 | 读取 `skills.zh-CN/<path>`，翻译为英文，写入 `skills/<path>` |
+| **更新** — `skills/<name>/` 中已存在对应文件 | 读取 `skills.zh-CN/<path>`，重新翻译为英文，覆盖 `skills/<path>` |
+| **跳过** — 内容无变化 | 可跳过（由 agent 判断） |
+
+### A.3 废弃已移除的技能
+
+扫描 `skills/` 目录中每个技能的子目录，如 `skills.zh-CN/` 中已不存在对应的技能子目录：
+- 将整个技能目录移入 `deprecated/skills/`（英文废弃目录）
+- 同时将中文源技能目录移入 `deprecated/skills.zh-CN/`（中文废弃目录）
+
+---
+
+## Task B: 同步 Commands
+
+### B.1 扫描源目录
+
+扫描 `commands.zh-CN/` 目录，收集每个 `.md` 文件的文件名（不含扩展名），作为"待同步命令列表"。
+
+### B.2 逐文件同步
+
+对每个待同步的命令文件：
+
+| 情况 | 操作 |
+|------|------|
+| **新增** — `commands/` 中不存在对应文件 | 读取 `commands.zh-CN/<name>.md`，翻译为英文，写入 `commands/<name>.md` |
+| **更新** — `commands/` 中已存在对应文件 | 读取 `commands.zh-CN/<name>.md`，重新翻译为英文，覆盖 `commands/<name>.md` |
+| **跳过** — 内容无变化 | 可跳过（由 agent 判断） |
+
+### B.3 废弃已移除的命令
+
+扫描 `commands/` 目录中的文件，如 `commands.zh-CN/` 中已不存在对应文件：
+- 将文件移入 `deprecated/commands/`（英文废弃目录）
+- 同时将中文源文件移入 `deprecated/commands.zh-CN/`（中文废弃目录）
+
+---
+
+## 完成后检查
+
+- `commands/` 和 `commands.zh-CN/` 的文件数量一致，文件名一一对应
+- `skills/` 和 `skills.zh-CN/` 的目录结构与文件路径一一对应
+- 废弃文件已移入 `deprecated/` 对应目录，英文与中文废弃目录的文件路径一致
+- 英文文件与中文文件的 Markdown 结构一致（标题层级、表格、代码块位置相同）
+- 英文文件中无残留的中文文本

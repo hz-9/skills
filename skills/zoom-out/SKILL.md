@@ -1,12 +1,12 @@
 ---
 name: zoom-out
-description: 让 agent 缩小视角，提供更广泛的上下文或更高层次的视角。当你不熟悉某段代码或需要理解它如何融入全局时使用。
+description: Make the agent zoom out, providing broader context or a higher-level perspective. Use when you're unfamiliar with some code or need to understand how it fits into the bigger picture.
 disable-model-invocation: true
 ---
 
-我不太熟悉这块代码。向上一层抽象。给我一张所有相关模块和调用者的地图，使用项目的领域术语表词汇。
+I'm not very familiar with this code. Go up one level of abstraction. Give me a map of all related modules and callers, using the project's domain glossary terminology.
 
-## 示例
+## Examples
 
-- 用户："这段代码我不太熟悉，帮我 zoom out 一下" → agent 输出模块地图和调用关系
-- 用户："这个文件是做什么的？它和整个项目有什么关系？" → agent 解释该文件在整体架构中的角色
+- User: "I'm not familiar with this code, help me zoom out" → agent outputs a module map and call relationships
+- User: "What does this file do? How does it relate to the whole project?" → agent explains the file's role in the overall architecture
