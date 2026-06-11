@@ -1,46 +1,46 @@
-# Rush.js → Nx + Changesets 完整迁移参考
+# Rush.js → Nx + Changesets Complete Migration Reference
 
-## 迁移前后对比
+## Migration Comparison
 
-| 维度 | 迁移前 | 迁移后 |
-|------|--------|--------|
-| Monorepo 工具 | Rush.js | Nx |
-| 包管理器 | Rush 内置 pnpm | 原生 pnpm |
-| 工作空间定义 | `rush.json` + `common/config/rush/` | `pnpm-workspace.yaml` |
-| 任务编排 | `rush build`, `rush lint` | `nx run-many --target=build` |
-| 版本管理 | `rush change` + `rush version` | Changesets (`pnpm changeset`) |
-| 发布 | `rush publish` | Changesets (`pnpm changeset publish`) |
-| Git hooks | `common/git-hooks/` + Rush autoinstaller | `.husky/` |
-| 提交规范 | `rush-commitlint` autoinstaller | `commitlint.config.js` + husky |
-| 格式化 | `rush-prettier` autoinstaller | `.husky/pre-commit` + lint-staged |
+| Dimension | Before Migration | After Migration |
+|-----------|-----------------|----------------|
+| Monorepo Tool | Rush.js | Nx |
+| Package Manager | Rush built-in pnpm | Native pnpm |
+| Workspace Definition | `rush.json` + `common/config/rush/` | `pnpm-workspace.yaml` |
+| Task Orchestration | `rush build`, `rush lint` | `nx run-many --target=build` |
+| Version Management | `rush change` + `rush version` | Changesets (`pnpm changeset`) |
+| Publishing | `rush publish` | Changesets (`pnpm changeset publish`) |
+| Git Hooks | `common/git-hooks/` + Rush autoinstaller | `.husky/` |
+| Commit Convention | `rush-commitlint` autoinstaller | `commitlint.config.js` + husky |
+| Formatting | `rush-prettier` autoinstaller | `.husky/pre-commit` + lint-staged |
 | CI/CD | `actions-rush` GitHub Action | `pnpm/action-setup` |
 
-## 适合迁移的场景
+## Suitable Migration Scenarios
 
-- 包数量不多（< 20），依赖关系简单
-- 版本发布不频繁
-- 团队熟悉 pnpm 而非 Rush 生态
-- 不需要 Rush 特有功能（hotfix 分支、版本策略等）
+- Small number of packages (< 20), simple dependency relationships
+- Infrequent version releases
+- Team is familiar with pnpm rather than the Rush ecosystem
+- No need for Rush-specific features (hotfix branches, version strategies, etc.)
 
-## 迁移步骤
+## Migration Steps
 
-### 第 1 步：分析现有仓库结构
+### Step 1: Analyze Existing Repository Structure
 
 ```bash
-# 了解 Rush 项目结构和依赖关系
+# Understand Rush project structure and dependencies
 ls -la rush.json
 cat rush.json | jq '.projects[] | {packageName, projectFolder}'
 ```
 
-关键信息：
-- 有多少个项目？哪些需要发布？
-- 项目间的 `workspace:*` 依赖关系？
-- 有无自定义 Rush 命令（commitlint、prettier 等）？
-- CI/CD 配置方式？
+Key Information:
+- How many projects? Which ones need to be published?
+- What are the `workspace:*` dependency relationships between projects?
+- Are there any custom Rush commands (commitlint, prettier, etc.)?
+- How is CI/CD configured?
 
-### 第 2 步：初始化 Nx workspace
+### Step 2: Initialize Nx Workspace
 
-创建以下文件：
+Create the following files:
 
 **pnpm-workspace.yaml**
 ```yaml
@@ -55,7 +55,7 @@ shamefully-hoist=true
 strict-peer-dependencies=false
 ```
 
-**根 package.json**
+**Root package.json**
 ```json
 {
   "name": "my-repo-nx",
@@ -124,29 +124,29 @@ strict-peer-dependencies=false
 }
 ```
 
-> `@changesets/changelog-git` 使用 git log 消息作为 changelog，格式简洁无 hash 前缀。如需 conventional commit 格式，可改用 `@changesets/changelog-gfm`。
+> `@changesets/changelog-git` uses git log messages as the changelog, with a clean format and no hash prefix. If you prefer conventional commit format, you can switch to `@changesets/changelog-gfm`.
 
-### 第 3 步：复制源码包
+### Step 3: Copy Source Packages
 
 ```bash
-# 从 Rush 仓库复制包到新仓库（排除 node_modules、Rush 缓存和运行时文件）
+# Copy packages from Rush repository to the new repository (excluding node_modules, Rush cache, and runtime files)
 rsync -av --exclude='node_modules' \
   --exclude='common/temp' --exclude='common/autoinstallers' \
   --exclude='.git' --exclude='*.lint.log' \
   --exclude='.DS_Store' \
   /path/to/rush-repo/ /path/to/nx-repo/
 
-# 删除 .rush 临时目录
+# Remove .rush temporary directories
 rm -rf packages/*/.rush
 
-# 重组目录（Rush 常用 category/package 两层结构）
+# Reorganize directory structure (Rush commonly uses a two-level category/package structure)
 mkdir -p packages
 mv category-a/package-a packages/package-a
 mv category-b/package-b packages/package-b
 rm -rf category-a category-b
 ```
 
-### 第 4 步：为每个包创建 project.json
+### Step 4: Create project.json for Each Package
 
 ```json
 {
@@ -174,22 +174,22 @@ rm -rf category-a category-b
 }
 ```
 
-如果包有内部依赖，添加 `implicitDependencies`：
+If a package has internal dependencies, add `implicitDependencies`:
 ```json
 {
   "implicitDependencies": ["@scope/dependency-name"]
 }
 ```
 
-> **注意**：每个包的 `package.json` 中的 `lint`/`build` 命令路径必须与包的实际目录结构一致。如果包没有 `src/` 目录，请相应调整路径（如 `./profile/**/*.js`）。
+> **Note**: The `lint`/`build` command paths in each package's `package.json` must match the actual directory structure of that package. If a package does not have a `src/` directory, adjust the path accordingly (e.g., `./profile/**/*.js`).
 
-### 第 5 步：迁移 Git hooks
+### Step 5: Migrate Git Hooks
 
-移除以 Rush 的 `common/git-hooks/` 和 `common/autoinstallers/`，创建 husky hooks：
+Remove the Rush-based `common/git-hooks/` and `common/autoinstallers/`, and create husky hooks:
 
 ```bash
-# 创建 .husky/ 目录和默认 hook
-npx husky init   # 会自动在 package.json 添加 "prepare": "husky"
+# Create .husky/ directory and default hook
+npx husky init   # This will automatically add "prepare": "husky" to package.json
 
 # commit-msg hook
 cat > .husky/commit-msg << 'EOF'
@@ -204,9 +204,9 @@ EOF
 chmod +x .husky/commit-msg .husky/pre-commit
 ```
 
-`npx husky init` 会自动在 `package.json` 中添加 `"prepare": "husky"` 脚本。这样每次 `pnpm install` 时，husky 会自动激活 Git hooks。
+`npx husky init` will automatically add the `"prepare": "husky"` script to `package.json`. This ensures husky activates Git hooks every time `pnpm install` is run.
 
-创建 `commitlint.config.js`：
+Create `commitlint.config.js`:
 ```js
 module.exports = {
   extends: ['@commitlint/config-conventional'],
@@ -216,7 +216,7 @@ module.exports = {
 }
 ```
 
-创建 `.lintstagedrc.json`：
+Create `.lintstagedrc.json`:
 ```json
 {
   "*.{js,jsx,ts,tsx}": ["prettier --write", "eslint --fix"],
@@ -224,34 +224,34 @@ module.exports = {
 }
 ```
 
-> **Prettier vs ESLint 解析规则**：Prettier 从项目根目录向上查找配置（根 `.prettierrc.js` 生效于全局），而 ESLint 从文件所在目录向上查找（每个包可以有自己的 `eslintrc` 配置）。
+> **Prettier vs ESLint resolution**: Prettier searches upward from the project root for configuration (root `.prettierrc.js` applies globally), while ESLint searches upward from the file's directory (each package can have its own `eslintrc` configuration).
 
-### 第 6 步：更新配置文件
+### Step 6: Update Configuration Files
 
-**更新 .gitignore** — 移除 Rush 条目，添加 Nx 条目：
+**Update .gitignore** — Remove Rush entries, add Nx entries:
 ```
-# Rush 相关（移除）
+# Rush related (remove)
 - common/deploy/
 - common/temp/
 - **/.rush/temp/
 
-# Nx 相关（添加）
+# Nx related (add)
 + .nx/
 + nx-cloud.env
 ```
 
-**更新 .prettierrc.js** — 将 Rush autoinstaller 路径改为 npm 包名：
+**Update .prettierrc.js** — Change Rush autoinstaller paths to npm package names:
 ```js
-// 迁移前
+// Before migration
 plugins: ['./common/autoinstallers/rush-prettier/node_modules/...']
 
-// 迁移后
+// After migration
 plugins: ['@trivago/prettier-plugin-sort-imports']
 ```
 
-**更新 .prettierignore** — 替换 Rush 路径为 Nx 路径：
+**Update .prettierignore** — Replace Rush paths with Nx paths:
 ```
-# Rush 相关（移除）
+# Rush related (remove)
 - common/deploy/
 - common/temp/
 - common/autoinstallers/*/.npmrc
@@ -260,7 +260,7 @@ plugins: ['@trivago/prettier-plugin-sort-imports']
 - /eslint-config/*/lib
 - /eslint-config/*/temp
 
-# Nx 相关（添加）
+# Nx related (add)
 + .nx/
 + /packages/*/dist
 + /packages/*/lib
@@ -268,38 +268,38 @@ plugins: ['@trivago/prettier-plugin-sort-imports']
 + .changeset/
 ```
 
-**更新各包 repository.directory** — 反映新的目录结构：
+**Update each package's repository.directory** — Reflect the new directory structure:
 ```json
-// 迁移前
+// Before migration
 "repository": {
   "directory": "category-name/package-name"
 }
 
-// 迁移后
+// After migration
 "repository": {
   "directory": "packages/package-name"
 }
 ```
 
-**保留非 Rush 配置文件** — 这些文件与 Rush 无关，无需删除：
-- `.markdownlint.json` — markdown lint 配置
-- `.nvmrc` — Node.js 版本管理
-- `.editorconfig` — 编辑器配置（如存在）
+**Preserve non-Rush configuration files** — These files are unrelated to Rush and should not be deleted:
+- `.markdownlint.json` — markdown lint configuration
+- `.nvmrc` — Node.js version management
+- `.editorconfig` — Editor configuration (if present)
 
-**更新 .vscode/settings.json** — 移除 Rush 路径引用：
+**Update .vscode/settings.json** — Remove Rush path references:
 ```json
-// 移除
+// Remove
 "eslint.nodePath": "common/autoinstallers/rush-eslint"
 ```
 
-### 第 7 步：更新 CI/CD
+### Step 7: Update CI/CD
 
 ```yaml
-# 迁移前 (Rush)
+# Before migration (Rush)
 - name: RushJS Helper
   uses: advancedcsg-open/actions-rush@v1.6.2
 
-# 迁移后 (pnpm + Nx)
+# After migration (pnpm + Nx)
 - name: Setup pnpm
   uses: pnpm/action-setup@v4
   with:
@@ -309,7 +309,7 @@ plugins: ['@trivago/prettier-plugin-sort-imports']
 - run: pnpm nx run-many --target=build --all
 ```
 
-### 第 8 步：安装依赖并验证
+### Step 8: Install Dependencies and Verify
 
 ```bash
 pnpm install
@@ -318,95 +318,95 @@ pnpm nx run-many --target=build --all
 pnpm nx graph
 ```
 
-> 第一次 `pnpm install` 时，`prepare` 脚本会自动运行 `npx husky init` 激活 Git hooks，并在 `.husky/` 下生成 `_` 标记文件。这是 husky v9 的正常行为，无需手动处理。
+> On the first `pnpm install`, the `prepare` script will automatically run `npx husky init` to activate Git hooks and generate a `_` marker file in `.husky/`. This is normal behavior for husky v9 and requires no manual intervention.
 
-## 关键决策点
+## Key Decision Points
 
-### 1. 目录结构
+### 1. Directory Structure
 
-| 原 Rush 结构 | 建议 Nx 结构 |
-|---|---|
+| Original Rush Structure | Recommended Nx Structure |
+|-------------------------|------------------------|
 | `eslint-config/eslint-config-airbnb/` | `packages/eslint-config-airbnb/` |
 | `apps/web-app/` | `apps/web-app/` |
 | `libraries/shared-utils/` | `packages/shared-utils/` |
 
-Rush 强制 `projectFolderMinDepth=2`，Nx 无此限制。建议统一用 `packages/`。
+Rush enforces `projectFolderMinDepth=2`, while Nx has no such restriction. It is recommended to use `packages/` uniformly.
 
-### 2. 发布流程
+### 2. Release Process
 
-每次发布流程：
+Each release process:
 
 ```bash
-# 1. 记录变更（交互式选择版本类型和 changelog）
+# 1. Record changes (interactively select version type and changelog)
 pnpm changeset
 
-# 2. 执行发布
+# 2. Execute release
 bash scripts/release.sh
 ```
 
-`release.sh` 自动完成：
-1. 记录当前各包版本快照
-2. 执行 `pnpm changeset version` 应用版本 bump
-3. 更新 lockfile
-4. 检测哪些包版本发生变化
-5. git commit（message: `chore: version bump`）
-6. 为每个变化的包创建独立 tag（格式：`@scope/pkg@x.y.z`）
-7. `pnpm changeset publish` 发布到 npm
+`release.sh` automatically completes:
+1. Record version snapshots of each package
+2. Execute `pnpm changeset version` to apply version bumps
+3. Update lockfile
+4. Detect which packages have version changes
+5. git commit (message: `chore: version bump`)
+6. Create individual tags for each changed package (format: `@scope/pkg@x.y.z`)
+7. `pnpm changeset publish` to npm
 8. git push + git push --tags
 
-> **注意**：`release.sh` 中使用 temp 文件（非 `declare -A`）记录版本快照，兼容 macOS 默认 bash。
+> **Note**: `release.sh` uses temp files (not `declare -A`) to record version snapshots, ensuring compatibility with macOS default bash.
 
-### 3. 版本策略
+### 3. Version Strategy
 
-- 包在 0.x.x 阶段：`feat` → minor, `fix` → patch
-- 包在 >=1.0.0：`feat` → minor, `fix` → patch, breaking → major
-- Changesets `updateInternalDependencies: "patch"` 确保内部消费者自动 patch bump
-- 新增包首次 changeset 时，Changesets 会询问是否设置初始版本
+- Package at 0.x.x stage: `feat` → minor, `fix` → patch
+- Package at >=1.0.0: `feat` → minor, `fix` → patch, breaking → major
+- Changesets `updateInternalDependencies: "patch"` ensures internal consumers get automatic patch bumps
+- When a new package generates its first changeset, Changesets will prompt whether to set an initial version
 
-### 4. 何时不适用此方案
+### 4. When This Approach Is Not Suitable
 
-- 需要热修复分支管理（Rush hotfix）
-- 需要强制依赖版本一致性（Rush ensureConsistentVersions）
-- 超大规模 monorepo（> 100 包）
-- 已有稳固的 Rush 流水线且团队熟悉
+- Hotfix branch management is needed (Rush hotfix)
+- Enforcing consistent dependency versions is required (Rush ensureConsistentVersions)
+- Extremely large-scale monorepo (> 100 packages)
+- Already have a well-established Rush pipeline and the team is familiar with it
 
-## 配置清单
+## Configuration Checklist
 
-迁移完成后，逐项确认：
+After migration completes, verify each item:
 
-- [ ] `pnpm-workspace.yaml` 已配置
-- [ ] `nx.json` 已配置
-- [ ] `.changeset/config.json` 已配置
-- [ ] 每个包有 `project.json`
-- [ ] `.husky/commit-msg` 和 `.husky/pre-commit` 已配置
-- [ ] `commitlint.config.js` 已创建
-- [ ] `.lintstagedrc.json` 已创建
-- [ ] `.gitignore` 已更新（移除 Rush，添加 Nx）
-- [ ] `.prettierrc.js` 插件路径已更新
-- [ ] `.prettierignore` 已更新（移除 Rush 路径，添加 Nx 路径）
-- [ ] `.npmrc` 已创建
-- [ ] CI/CD 已更新（`actions-rush` → `pnpm/action-setup`）
-- [ ] `.vscode/settings.json` 已清理
-- [ ] 各包 `repository.directory` 已更新（`category/package` → `packages/package`）
-- [ ] 非 Rush 配置文件已保留（`.markdownlint.json`, `.nvmrc` 等）
-- [ ] Rush 运行时文件已清理（`*.lint.log`, `.rush/` 目录）
-- [ ] `rush.json` 已删除
-- [ ] `common/` 目录已删除（确认无需要保留的内容）
+- [ ] `pnpm-workspace.yaml` configured
+- [ ] `nx.json` configured
+- [ ] `.changeset/config.json` configured
+- [ ] Each package has `project.json`
+- [ ] `.husky/commit-msg` and `.husky/pre-commit` configured
+- [ ] `commitlint.config.js` created
+- [ ] `.lintstagedrc.json` created
+- [ ] `.gitignore` updated (remove Rush, add Nx)
+- [ ] `.prettierrc.js` plugin paths updated
+- [ ] `.prettierignore` updated (remove Rush paths, add Nx paths)
+- [ ] `.npmrc` created
+- [ ] CI/CD updated (`actions-rush` → `pnpm/action-setup`)
+- [ ] `.vscode/settings.json` cleaned up
+- [ ] Each package's `repository.directory` updated (`category/package` → `packages/package`)
+- [ ] Non-Rush configuration files preserved (`.markdownlint.json`, `.nvmrc`, etc.)
+- [ ] Rush runtime files cleaned up (`*.lint.log`, `.rush/` directory)
+- [ ] `rush.json` deleted
+- [ ] `common/` directory deleted (confirmed no content that needs to be kept)
 
-## 常见问题
+## Frequently Asked Questions
 
-### Nx 命令找不到
+### Nx command not found
 ```bash
-# nx 未全局安装时，使用 pnpm 前缀
+# When nx is not globally installed, use the pnpm prefix
 pnpm nx run-many --target=lint --all
 ```
 
-### Husky hooks 不执行
+### Husky hooks not executing
 ```bash
-# 确保 prepare 脚本已执行
-pnpm prepare    # 或 pnpm install
-# .husky/_ 是 husky v9 的内部标记文件，无需手动处理
+# Ensure the prepare script has been executed
+pnpm prepare    # or pnpm install
+# .husky/_ is an internal marker file for husky v9, no manual handling needed
 ```
 
-### Changesets changelog hash 前缀
-`@changesets/cli/changelog`（默认）会产生 `dbece3b:` hash 前缀。切换为 `@changesets/changelog-git` 后去除 hash，使用 git log 消息格式。
+### Changesets changelog hash prefix
+`@changesets/cli/changelog` (default) generates a `dbece3b:` hash prefix. Switching to `@changesets/changelog-git` removes the hash and uses git log message format.
