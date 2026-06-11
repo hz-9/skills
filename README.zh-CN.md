@@ -40,6 +40,15 @@ npx skills add hz-9/skills --skill zoom-out
 bash scripts/install-skills.sh
 ```
 
+一行命令（无需克隆仓库）：
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-skills.sh)
+
+# 指定自定义目录：
+SKILLS_DIR=~/.qoder/skills bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-skills.sh)
+```
+
 ### 已废弃
 
 | 技能名称 | 描述 |
