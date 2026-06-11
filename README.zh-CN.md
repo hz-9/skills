@@ -80,22 +80,6 @@ bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/inst
 COMMANDS_DIR=~/.qoder/commands bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-commands.sh)
 ```
 
-## Step - 2：文档同步
-
-确保当前 `skills` 文件夹下的技能项与 README.zh-CN.md 文档的 `Skills` 二级标题下的内容保持一致：
-- 缺失的 Skill 新增到表格和 `安装脚本` 当中；
-- 废弃的 Skill 移动到 `Skills - 已废弃` 标题下，并在 `安装脚本` 中移除；
-- 更新的 Skill 可通过修改表格中的内容；
-
-确保当前 `commands` 文件夹下的技能项与 README.zh-CN.md 文档的 `Commands` 二级标题下的内容保持一致：
-- 缺失的 Command 新增到表格和 `安装脚本` 当中；
-- 废弃的 Command 移动到 `Commands - 已废弃` 标题下，并在 `安装脚本` 中移除；
-- 更新的 Command 可通过修改表格中的内容；
-
-## Step - 3：中英文同步
-
-将 README.zh-CN.md 翻译为英文，同步到 README.md ，以保证相同的目录和内容。
-
 ## 许可证
 
 MIT

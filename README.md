@@ -80,22 +80,6 @@ bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/inst
 COMMANDS_DIR=~/.qoder/commands bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-commands.sh)
 ```
 
-## Step - 2: Document Sync
-
-Ensure the skills under the `skills/` directory are consistent with the content under the `## Skills` section in README.zh-CN.md:
-- New skills are added to the table and the `Install script` section;
-- Deprecated skills are moved to the `### Deprecated` section and removed from the `Install script` section;
-- Updated skills can be modified directly in the table;
-
-Ensure the commands under the `commands/` directory are consistent with the content under the `## Commands` section in README.zh-CN.md:
-- New commands are added to the table and the `Install script` section;
-- Deprecated commands are moved to the `#### Deprecated` section and removed from the `Install script` section;
-- Updated commands can be modified directly in the table;
-
-## Step - 3: Chinese-English Sync
-
-Translate README.zh-CN.md to English and synchronize to README.md to maintain the same directory structure and content.
-
 ## License
 
 MIT
