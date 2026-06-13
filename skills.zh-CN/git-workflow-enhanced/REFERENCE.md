@@ -14,10 +14,9 @@ commit message 格式：`<type>(<scope>): <subject>`
 
 分支名拼接规则：
 1. 取 type 作为前缀
-2. 如果 scope 存在且有意义，可以加入路径：`type/scope-subject-kebab` 或 `type/subject-kebab`
-3. subject 转为 kebab-case（小写 + 连字符）
-4. 去掉无意义的冠词（a, an, the）
-5. 总长度控制在 50 字符以内，过长则截断 subject
+2. subject 转为 kebab-case（小写 + 连字符）
+3. 去掉无意义的冠词（a, an, the）
+4. 总长度控制在 50 字符以内，过长则截断 subject
 
 ### 复杂度示例
 
@@ -41,6 +40,23 @@ commit message 格式：`<type>(<scope>): <subject>`
 → 分支：fix/correct-date-formatting-in-timezone
 ```
 
+## 保护分支处理
+
+### 保护分支列表
+
+dev、stage、staging、prod、master
+
+### detached HEAD 检测
+
+当 `git branch --show-current` 返回空时，执行以下步骤推断源头分支：
+
+```bash
+HEAD_COMMIT=$(git log --oneline -1 --format="%H")
+SOURCE_BRANCH=$(git branch -a --contains "$HEAD_COMMIT" | head -1 | sed 's/.*\///')
+```
+
+若 `SOURCE_BRANCH` 在保护分支列表中，视为"源自保护分支"，必须创建新功能分支。
+
 ## 错误处理
 
 ### 分支已存在
@@ -58,3 +74,28 @@ git checkout -b <branch-name> 2>/dev/null || git checkout <branch-name>
 ### Hook 创建失败
 
 如果 `.git/hooks/` 目录不存在（如未初始化 git 仓库），提示用户先执行 `git init`。
+
+### Rebase 冲突
+
+推送前发现本地落后于远端时执行 rebase：
+
+```bash
+git fetch origin <branch>
+git rebase origin/<branch>
+```
+
+若 rebase 产生冲突：
+- 暂停执行
+- 告知用户冲突文件和冲突内容
+- 提示用户手动解决冲突后执行 `git rebase --continue`，然后重新推送
+
+## PR 链接提取
+
+推送成功后，从 `git push` 输出中提取 PR 创建链接：
+
+```
+remote: Create a pull request for 'feat/xxx' on GitHub by visiting:
+remote:      https://github.com/org/repo/pull/new/feat/xxx
+```
+
+正则匹配 `remote:.*(https://github.com/.*/pull/new/.*)` 提取链接。
