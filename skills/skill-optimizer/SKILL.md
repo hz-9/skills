@@ -1,99 +1,102 @@
 ---
 name: skill-optimizer
-description: Optimize SKILL.md directory structure, condense redundant content, and split reference documents to improve readability and maintainability. Use when the user needs to improve, refactor, or standardize an existing SKILL.md.
+description: Optimizes SKILL.md directory structure, trims redundant content, and splits reference documents to improve readability and maintainability. Use when the user needs to improve, refactor, or standardize an existing SKILL.md.
 ---
 # Skill Optimizer
 
 ## Overview
 
-Standardize and optimize existing SKILL.md files: align with the standard template structure, condense redundant content, and split reference documents to improve maintainability.
+Standardize and optimize existing SKILL.md files: align with the standard template structure, trim redundant content, and split reference documents to improve maintainability.
 
 ## Definitions
 
-- **Similar-meaning directory**: A directory with the same semantics as a standard directory but a different historical name (e.g., `Description`↔`Overview`, `Checklist`↔`Review List`). The AI automatically identifies whether such directories exist and their corresponding target directories; adoption is confirmed by the user;
-- **Reference hierarchy**: SKILL.md directly linking to files under `references/` is one level; `references/` files then linking to external resources is two levels and should be avoided.
+- **Similar-meaning Sections**: Sections with the same semantics as standard sections but different historical names (e.g. `Description`↔`Overview`, `Checklist`↔`Review List`). The AI auto-detects their existence and the corresponding target section, then the user confirms whether to adopt, leave blank, or skip;
+- **Reference Hierarchy**: SKILL.md directly linking to files under `references/` is a single level; files under `references/` linking to external resources is a second level and should be avoided.
 
 ## Prerequisites
 
-The target to be modified and optimized must already exist. This SKILL is for optimization, not creation from scratch. To create a skill from scratch, use `skill-create`.
+The target to be modified and optimized already exists. This SKILL handles optimization, not creation from scratch. To create a skill from scratch, use `skill-create`.
 
 ## Workflow
 
-1. **Structure alignment** — Compare against the [template](template.md), fill in missing directories, and adjust directory order;
-   - Check frontmatter: confirm that `name` and `description` fields exist;
-     - description must satisfy the format requirements in [Rules](#rules) (first sentence: capability + second sentence: trigger + third person + ≤1024 characters);
-     - If missing or non-compliant, interactively confirm the fix approach;
-   - Missing directories: the AI automatically identifies whether similar-meaning directories exist and presents them to the user, who confirms whether to adopt, leave empty, or skip;
-2. **Content condensation** — Check and clean up SKILL.md content;
-   - Content not in the template's standard directories → migrate to `references/` (if a file with the same name exists, interactively confirm overwrite, merge, or skip);
-   - After migration, update internal links in the migrated content that point to the original location;
-   - Line count must not exceed 300 lines; content exceeding 300 lines or containing large amounts of complex content must be migrated to `references/` (prioritize reducing blank lines, then compress with [text simplification rules](references/text-optimization.md); compressing semantic density is prohibited);
+1. **Structure Alignment** — Compare against the [template](template.md), fill in missing sections and adjust section order;
+   - Check frontmatter: confirm `name` and `description` fields exist;
+     - description must satisfy the format requirements in [Rules](#rules) (first sentence = capability + second sentence = trigger + third person + ≤1024 characters);
+     - If missing or non-standard, interactively confirm the fix approach;
+   - Missing sections: AI auto-detects similar-meaning sections and presents them to the user, who confirms whether to adopt, leave blank, or skip;
+2. **Content Refinement** — Check and clean SKILL.md content;
+   - Non-standard section content → migrate to `references/` (if a file with the same name exists, interactively confirm whether to overwrite, merge, or skip);
+   - After migration, update internal links that previously pointed to the original location;
+   - Line count must not exceed 300; if over 300 lines or containing a large amount of complex content, migrate to `references/` (first reduce blank lines, then apply [Text Simplification Rules](references/text-optimization.md) to compress content; do not compress semantic density);
    - Remove time-sensitive information; maintain terminology consistency;
-   - Determine whether to add a `scripts/` directory: recommended if the skill includes deterministic operations (validation, formatting), code that would be repeatedly generated, or logic requiring explicit error handling;
-3. **Reference document splitting** — If `REFERENCE.md` exists, present the split plan first, then execute after confirmation:
-   - Split by domain into multiple files under `references/`; if a file with the same name exists, interactively confirm overwrite, merge, or skip;
-   - After splitting, update all links in SKILL.md pointing to the original file;
-4. **Review check** — Compare against the [Review List](#review-list), verify optimization results item by item;
-   - If any check item fails → return to the corresponding step to fix, until all pass or the user confirms to skip;
-   - Once all pass, output an optimization summary (line count comparison, directory completion status, reference document split status, etc.), and notify that optimization is complete;
+   - Evaluate whether a `scripts/` directory is needed: if the skill includes deterministic operations (verification, formatting), code that would be regenerated repeatedly, or logic requiring explicit error handling, it is recommended to introduce one;
+3. **Reference Document Splitting** — If `REFERENCE.md` exists, present a split plan first, then execute after confirmation:
+   - Split by domain into multiple files under `references/`; if files with the same name exist, interactively confirm whether to overwrite, merge, or skip;
+   - After splitting, update all links in SKILL.md that previously pointed to the original file;
+4. **Review Check** — Verify optimization results against the [Review List](#review-list);
+   - Any check item that fails → return to the corresponding step to fix, until all pass or the user confirms skipping;
+   - Once all pass, output an optimization summary (line count comparison, section completion status, reference document split status, etc.) and report completion;
 
 ## Rules
 
-- The description must follow the format: the first sentence states what the skill can do, the second sentence states the trigger condition ("Use when..."), using third person, not exceeding 1024 characters;
-- Before deleting any file, always ask the user for confirmation through interactive questioning;
-- Only recommend editing files in `SKILL.md` and the `references/` directory (moving/deleting REFERENCE.md or template.md at the root is an exception within this scope and requires interactive confirmation);
+- description must follow the format: first sentence describes what the skill can do, second sentence describes the trigger condition ("Use when..."), use third person, not exceeding 1024 characters;
+- Any file deletion must be confirmed through an interactive question to the user;
+- Only edit files under `SKILL.md` and `references/` directory (moving/deleting root-level REFERENCE.md or template.md is an exception to this scope and requires interactive confirmation);
 - REFERENCE.md should be moved to the `references` folder and split into multiple files;
-- For every operation involving file movement, splitting, or deletion, side effects caused by that operation must be handled synchronously (such as updating link references, fixing relative paths);
-- The directory structure standard applies only to the SKILL.md file of the target SKILL itself and does not affect other files in the directory;
-- Reference hierarchy must not exceed one level: SKILL.md may directly link to files under `references/`; files under `references/` should not link to external resources;
+- After splitting REFERENCE.md, compare each section against the original to confirm no content is lost (e.g. parenthetical examples, notes, and other details are not omitted);
+- For every operation involving file movement, splitting, or deletion, side effects caused by the operation must be handled synchronously (e.g. updating link references, fixing relative paths);
+- Directory structure standards apply only to the target SKILL's SKILL.md file itself and do not affect other files in the directory;
+- Reference hierarchy must not exceed one level: SKILL.md can directly link to files under `references/`; files under `references/` should not link to external resources;
 
 ## Examples
 
-### Interactive Conversation Examples
+### Dialogue Interaction Example
 
-**Example: AI automatically invokes based on trigger conditions**
+**Example: AI triggers automatically based on trigger condition**
 
 ```
-User > Help me optimize this SKILL.md, the structure feels a bit messy
-AI > Detected user needs optimization, triggered skill-optimizer skill
-AI > Reading target SKILL.md, checking directory structure against template...
-     Missing directory: Review List
-     Extra directory: Changelog (not in template)
-AI > Missing "Overview" directory...
+User > Help me optimize this SKILL.md; the structure feels a bit messy
+
+AI > Detected user needs optimization, triggering skill-optimizer skill
+AI > Reading target SKILL.md, comparing directory structure against template...
+     Missing section: Review List
+     Extra section: Changelog (not in template)
+AI > Missing "Overview" section...
      Please choose how to handle:
-     1. Migrate xxxxx directory (a similar-meaning directory; this option does not appear if none exists)
-     2. Set to "None yet" for manual handling later
-AI > Found "Changelog" directory, which does not exist in the template.
+     1. Migrate the xxxxx section (a similar-meaning section; if none exists, this option will not appear)
+     2. Set to "None", handle manually later
+AI > Found "Changelog" section, which does not exist in the template.
      Please choose how to handle:
-     1. Migrate to references/ folder
+     1. Migrate to the references/ folder
      2. Delete
 User > 1
 AI > Changelog content has been migrated to references/changelog.md
 AI > Directory structure alignment complete, starting content quality check...
-     Found time-sensitive information: v1.2.0, 2024-03-15
-AI > Content cleanup in progress… time-sensitive info removed, current 92 lines (<300), no splitting needed
-AI > Review check starting… description format correct ✓, 92 lines (<300) ✓, reference hierarchy one level ✓, dead links fixed ✓, all passed.
+     Found time-sensitive info: v1.2.0, 2024-03-15
+AI > Content cleanup in progress… time-sensitive info removed; currently 92 lines (<300), no split needed
+AI > Starting review check… description format correct ✓, 92 lines (<300) ✓, single reference level ✓, dead links fixed ✓, all passed.
 ```
 
-### Execution Success Examples
+### Execution Success Example
 
-| Dimension | Before Optimization | After Optimization |
-|-----------|--------------------|--------------------|
-| SKILL.md lines | 150 lines | 85 lines |
-| Directory completeness | Missing Prerequisites, Review List | All directories filled |
-| Time-sensitive info | Contains v2.1.0, 2024-05-01, etc. | All removed |
-| Reference document organization | REFERENCE.md single file | Split into 3 independent files under references/ |
-| Trigger condition | Vague description | Clearly includes "Use when..." |
+| Dimension | Before | After |
+|-----------|--------|-------|
+| SKILL.md line count | 150 lines | 85 lines |
+| Section completeness | Missing Prerequisites, Review List | All sections filled |
+| Time-sensitive info | Contained v2.1.0, 2024-05-01, etc. | All removed |
+| Reference document organization | REFERENCE.md as single file | Split into 3 independent files under references/ |
+| Trigger condition | Vague description | Explicit "Use when..." included |
 
 ## Review List
 
-After optimization completes, verify the following:
-- [ ] description includes trigger condition ("Use when...") and does not exceed 1024 characters
-- [ ] SKILL.md does not exceed 300 lines; content exceeding 300 lines or with large amounts of complex content has been migrated to references/
+After optimization, verify the following:
+- [ ] description format: includes trigger condition ("Use when..."), uses third person (no you/your/we/I etc. first/second person pronouns), not exceeding 1024 characters
+- [ ] SKILL.md does not exceed 300 lines; if over 300 lines or containing a large amount of complex content, migrate to references/
 - [ ] Content quality: no time-sensitive info, consistent terminology, includes concrete examples with values matching rules
-- [ ] References and links: reference hierarchy does not exceed one level, no dead links, no unresolved placeholders
-- [ ] After content condensation, verify against the [text simplification verification checklist](references/text-optimization.md#verification-checklist)
-- [ ] Extended directories: scripts/, tests/, or schemas/ have been evaluated if needed
+- [ ] References & links: reference hierarchy not exceeding one level, no dead links (including in-file #anchor links that resolve to correct headings), no unresolved placeholders
+- [ ] Post-split content integrity: each section compared against original, no content lost
+- [ ] After content trimming, verify against the [Text Simplification Verification Checklist](references/text-optimization.md#verification-checklist) item by item
+- [ ] Extension directories: whether scripts/, tests/, or schemas/ needs to be introduced has been evaluated
 
 ## References
 
