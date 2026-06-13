@@ -27,7 +27,7 @@ Conditions that need to be met before execution, such as dependency tools, envir
 
 Example:
 
-> Requires Git 2.0+, currently in a Git repository directory, has branch deletion permissions. To create a skill from scratch, use `write-a-skill`.
+> Requires Git 2.0+, currently in a Git repository directory, has branch deletion permissions. To create a skill from scratch, use `skill-create`.
 
 ## Workflow
 

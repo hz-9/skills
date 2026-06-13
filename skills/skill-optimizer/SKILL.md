@@ -15,7 +15,7 @@ Standardize and optimize existing SKILL.md files: align with the standard templa
 
 ## Prerequisites
 
-The target to be modified and optimized must already exist. This SKILL is for optimization, not creation from scratch. To create a skill from scratch, use `write-a-skill`.
+The target to be modified and optimized must already exist. This SKILL is for optimization, not creation from scratch. To create a skill from scratch, use `skill-create`.
 
 ## Workflow
 
