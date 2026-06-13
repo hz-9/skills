@@ -9,7 +9,7 @@ Each skill is a self-contained directory following the [agent-skills specificati
 | [git-commit-helper](./skills/git-commit-helper/SKILL.md) | Generate Conventional Commits messages with AI analysis |
 | [git-workflow-enhanced](./skills/git-workflow-enhanced/SKILL.md) | Automate the full Git workflow: commit message → branch → prepare-commit-msg hook |
 | [grill-me](./skills/grill-me/SKILL.md) | Stress-test plans and designs through relentless questioning |
-| [grill-with-docs](./skills/grill-with-docs/SKILL.md) | Challenge designs against domain models and document decisions |
+| [grill-with-docs](./inbox/skills/grill-with-docs/SKILL.md) | Challenge designs against domain models and document decisions |
 | [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | Automate changeset file generation and commit for pnpm monorepos |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | Migrate Rush.js monorepo to Nx + pnpm workspace + Changesets |
 | [skill-create](./skills/skill-create/SKILL.md) | Create agent skills with proper structure and progressive disclosure |
@@ -57,6 +57,7 @@ SKILLS_DIR=~/.qoder/skills bash <(curl -s https://raw.githubusercontent.com/hz-9
 
 | Name | Description |
 |------|-------------|
+| [grill-me-lite](./deprecated/skills/grill-me-lite/SKILL.md) | Original lite version of grill-me, deprecated, use full [grill-me](./skills/grill-me/SKILL.md) instead |
 | [write-a-skill](./deprecated/skills/write-a-skill/SKILL.md) | Renamed to skill-create, please use the new name |
 
 ## Commands
