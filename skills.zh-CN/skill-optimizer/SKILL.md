@@ -15,7 +15,7 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
 
 ## Prerequisites
 
-待修改和优化对象已存在，本 SKILL 负责优化，而非从零创建。如需从零创建技能，使用 `write-a-skill`。
+待修改和优化对象已存在，本 SKILL 负责优化，而非从零创建。如需从零创建技能，使用 `skill-create`。
 
 ## Workflow
 
