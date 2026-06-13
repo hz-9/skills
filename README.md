@@ -9,7 +9,6 @@ Each skill is a self-contained directory following the [agent-skills specificati
 | [git-commit-helper](./skills/git-commit-helper/SKILL.md) | Generate Conventional Commits messages with AI analysis |
 | [git-workflow-enhanced](./skills/git-workflow-enhanced/SKILL.md) | Automate the full Git workflow: commit message → branch → prepare-commit-msg hook |
 | [grill-me](./skills/grill-me/SKILL.md) | Stress-test plans and designs through relentless questioning |
-| [grill-with-docs](./inbox/skills/grill-with-docs/SKILL.md) | Challenge designs against domain models and document decisions |
 | [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | Automate changeset file generation and commit for pnpm monorepos |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | Migrate Rush.js monorepo to Nx + pnpm workspace + Changesets |
 | [skill-create](./skills/skill-create/SKILL.md) | Create agent skills with proper structure and progressive disclosure |
@@ -28,7 +27,6 @@ npx skills add hz-9/skills
 npx skills add hz-9/skills --skill git-commit-helper
 npx skills add hz-9/skills --skill git-workflow-enhanced
 npx skills add hz-9/skills --skill grill-me
-npx skills add hz-9/skills --skill grill-with-docs
 npx skills add hz-9/skills --skill pnpm-changeset-workflow
 npx skills add hz-9/skills --skill rush-to-nx
 npx skills add hz-9/skills --skill skill-create

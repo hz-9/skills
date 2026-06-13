@@ -26,13 +26,14 @@ description: 扫描 skills/ 和 commands/ 目录，同步到 README.zh-CN.md 表
 
 | 情况 | 操作 |
 |------|------|
-| **缺失** — 活跃技能列表中存在，但表格/脚本中没有 | 新增到表格（按字母序），新增到 `npx skills` 和 `bash scripts/install.sh` 两个脚本块中 |
-| **废弃** — 表格/脚本中存在，但活跃技能列表中已无，且对应目录在 `deprecated/skills/` 下 | 从表格移除，从两个脚本块中移除，移入 `### 已废弃` 表格 |
+| **缺失** — 活跃技能列表中存在，但表格/脚本中没有 | 新增到表格（按字母序），新增到 `npx skills` 代码块中 |
+| **废弃** — 表格/脚本中存在，但活跃技能列表中已无，且对应目录在 `deprecated/skills/` 下 | 从表格移除，从 `npx skills` 代码块中移除，移入 `### 已废弃` 表格 |
+| **移除** — 表格/脚本中存在，但既不在活跃技能列表中，也不在 `deprecated/skills/` 下 | 从表格和 `npx skills` 代码块中直接删除 |
 | **更新** — 活跃技能列表中技能仍在，但描述需要修改 | 直接修改表格中的描述文本 |
 
 **"安装脚本"区块定位**：
-- `#### npx skills` 下方的 bash 代码块（逐行 `npx skills add hz-9/skills --skill <name>`）
-- `#### 使用脚本安装` 下方的 bash 代码块（逐行 `bash scripts/install.sh <name>`）
+- `#### npx skills` 下方的 bash 代码块（逐行 `npx skills add hz-9/skills --skill <name>`，需随技能增减同步维护）
+- `#### 使用脚本安装` 下方的 bash 代码块（`bash scripts/install-skills.sh`，无需逐技能条目，无需维护）
 
 ---
 
@@ -49,7 +50,8 @@ description: 扫描 skills/ 和 commands/ 目录，同步到 README.zh-CN.md 表
 | 情况 | 操作 |
 |------|------|
 | **缺失** — 活跃命令列表中存在，但表格中没有 | 新增到表格 |
-| **废弃** — 表格中存在，但活跃命令列表中已无 | 从表格移除，移入 `Commands - 已废弃` 标题下（若该标题不存在则新建） |
+| **废弃** — 表格中存在，但活跃命令列表中已无，且对应文件在 `deprecated/commands/` 下 | 从表格移除，移入 `Commands - 已废弃` 标题下（若该标题不存在则新建） |
+| **移除** — 表格中存在，但既不在活跃命令列表中，也不在 `deprecated/commands/` 下 | 从表格中直接删除 |
 | **更新** — 活跃命令列表中命令仍在，但描述需要修改 | 直接修改表格中的描述文本 |
 
 > 注意：Commands 同步后，无需再维护单独的"安装脚本"命令列表；`sync-commands.sh` 会自动同步 `commands/` 目录中的所有文件。
