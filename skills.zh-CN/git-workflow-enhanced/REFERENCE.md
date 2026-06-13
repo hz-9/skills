@@ -51,16 +51,9 @@ git checkout -b <branch-name> 2>/dev/null || git checkout <branch-name>
 
 同时提示用户当前在已存在的分支上。
 
-### 未暂存的变更
-
-当存在未暂存变更时，提示用户：
-- "检测到未暂存的变更，是否一起提交？"
-- 确认 → `git add -A` 后继续
-- 否 → `git add <specific-files>` 选择性暂存
-
 ### 无效变更
 
-如果 `git diff` 和 `git diff --staged` 都无输出，提示用户：无变更可分析，无法生成 commit message 和分支名。
+如果 `git status` 显示无任何变更，提示用户：无变更可分析，无法生成 commit message 和分支名。
 
 ### Hook 创建失败
 
