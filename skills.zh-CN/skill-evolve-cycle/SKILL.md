@@ -3,7 +3,7 @@ name: skill-evolve-cycle
 description: 对指定 SKILL 执行循环进化：小循环（优化→修复 与 审查→修复→再审查收敛）与大循环（优化→审查→合并→反哺→自优化）交替迭代，直至审查无新问题，或达到迭代上限。当用户希望对目标 SKILL 执行多轮进化循环时使用。
 ---
 
-# Evolve Cycle
+# Skill Evolve Cycle
 
 ## Overview
 
