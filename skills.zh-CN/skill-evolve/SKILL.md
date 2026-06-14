@@ -95,6 +95,7 @@ description: 对指定 SKILL 执行一次完整的结构进化：优化目录结
 
 - **元数据规范**
     - description 须遵循格式：第一句说明技能能做什么，第二句说明触发条件（"当...时使用"），使用第三人称，不超过 1024 字符；
+    - 仅校验 `name` 和 `description` 两个字段；其他非常规 frontmatter 字段（如 `disable-model-invocation`）保持原样，不做任何处理；
 - **文件操作规范**
     - 删除任何文件，都要通过交互式提问向使用者进行提问；
     - 仅建议编辑 `SKILL.md` 和 `references/` 目录下的文件；
