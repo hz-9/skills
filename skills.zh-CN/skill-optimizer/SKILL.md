@@ -41,7 +41,7 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
    - 依次判断标准目录（即 [模板](template.md) 中定义的 `##` 标题节，非 `scripts/` 等文件系统目录）是否存在：
       - 是 -> 下一步；
       - 否 -> 通过 AskUserQuestion 提供选项（采用 AI 自动识别的相似含义目录数据 / 留空），阻塞等待用户选择；
-   - 非模板标准目录的内容 → 迁移到 `references/` 下：
+   - 非模板标准目录的内容 -> 迁移到 `references/` 下：
       - 判断是否存在同名文件：
          - 是 -> 通过 AskUserQuestion 提供选项（覆盖 / 合并 / 跳过），阻塞等待用户选择；
          - 否 -> 下一步；
@@ -57,7 +57,10 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
       - 否 -> 基于 [交互式操作写作规范](references/interaction-writing.md) 进行优化；
    - 依次判断 `## Workflow` 中每个逻辑判断步骤，是否已使用树形箭头格式（`是 -> / 否 ->`）：
       - 是 -> 下一步（已合规，跳过优化）；
-      - 否 -> 基于 [分支逻辑写作规范](references/branch-logic-writing.md) 进行优化；
+      - 否 -> 基于 [分支逻辑写作规范](references/branch-logic-writing.md)（含树形箭头、条件极性匹配、分支终点显式化等）进行优化；
+   - 判断 SKILL.md 中的中文标点符号是否满足 [标点符号使用规范](references/punctuation-convention.md)：
+      - 是 -> 下一步（已合规，跳过优化）；
+      - 否 -> 基于标点符号使用规范进行优化；
 4. **内容精简** — 检查并清理 SKILL.md 内容；
    - 判断行数是否超过300行或存在大量复杂内容：
       - 是 -> 迁移到 `references/`：
@@ -65,6 +68,9 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
          - 其次按[文本简化规则](references/text-optimization.md)压缩内容，禁止压缩语义密度；
       - 否 -> 下一步；
    - 删除时效性信息；保持术语一致；
+   - 检查 `references/` 下的文件中是否引用了可能随 SKILL.md 变更而改变的具体可变量（如具体的文件名、路径、数值），需替换为抽象变量名：
+      - 是 -> 替换为抽象变量名（如 `[文件名]`、`[目录名]`），在括号中注明示例值或约束；
+      - 否 -> 下一步；
    - 判断是否需要添加 `scripts/`、`tests/` 或 `schemas/` 目录：
       - 是（技能包含确定性操作、会被重复生成的代码、需显式错误处理的逻辑、需测试用例、或需跨 Skill 数据传递） -> 建议引入对应目录；
       - 否 -> 下一步；
@@ -90,7 +96,7 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
 - **文件操作规范**
     - 删除任何文件，都要通过交互式提问向使用者进行提问；
     - 仅建议编辑 `SKILL.md` 和 `references/` 目录下的文件；
-        - 例外：移动或删除根目录下的 `REFERENCE.md` 或 `template.md` → 需通过 AskUserQuestion 提供选项（确认 / 取消），阻塞等待用户选择；
+        - 例外：移动或删除根目录下的 `REFERENCE.md` 或 `template.md` -> 需通过 AskUserQuestion 提供选项（确认 / 取消），阻塞等待用户选择；
     - REFERENCE.md 应该移动到 `references` 文件夹下，并拆散为多个文件；
     - 拆分 REFERENCE.md 后，必须逐段对比原文，确认无内容丢失（如括号内示例、注意事项等细节未被遗漏）；
 - **交互规范**
@@ -103,6 +109,10 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
     - 引用层次不超过一层：SKILL.md 可直接链接 `references/` 下文件；`references/` 下文件不应再链接外部资源；
     - 当 `references/` 下规范文件间发生冲突时，展开格式优先于压缩规则（branch-logic-writing.md 的树形分支、interaction-writing.md 的交互范式均不被 text-optimization.md 规则重新压缩）；
     - `## Examples` 中的所有示例必须由 markdown 代码块（`` ```markdown ... ``` ``）包裹，禁止以裸文本呈现示例；
+- **术语规范**
+    - Skill 所有文件中使用的领域术语，必须在 `## Definitions` 中有明确定义；引用的术语与 Definitions 中的定义名称必须完全一致（大小写敏感）；
+- **引用规范**
+    - reference 文件中的示例使用抽象变量名（如 `[文件名]`、`[目录名]`）代替具体数值或路径，避免因被引用文件内容变更导致示例与事实不一致；
 
 
 ## Examples
@@ -157,6 +167,11 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
     - [ ] 拆分后内容完整性：已逐段对比原文，无内容丢失
     - [ ] 扩展目录：需引入 scripts/、tests/ 或 schemas/ 的已评估
     - [ ] 优化过程无中断迹象：检查是否存在未完成的迁移（目标文件已创建但原内容未删除）、或 REFERENCE.md 拆分后链接更新不完整的中间态
+- **格式规范检查**
+    - [ ] 标点符号：对照[标点符号使用规范](references/punctuation-convention.md#验证清单)逐项确认
+- **术语与引用检查**
+    - [ ] 术语完整性：Skill 中使用的所有领域术语在 Definitions 中有定义，名称完全一致，无近义词替代
+    - [ ] 跨文件引用：references/ 下文件中引用 SKILL.md 或其他 reference 的具体值/路径已替换为抽象变量名
 
 ## References
 
@@ -165,3 +180,4 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
 - [文本简化规则](references/text-optimization.md)
 - [交互式操作写作规范](references/interaction-writing.md)
 - [分支逻辑写作规范](references/branch-logic-writing.md)
+- [标点符号使用规范](references/punctuation-convention.md)
