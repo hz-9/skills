@@ -1,6 +1,6 @@
 # SKILL 目录结构
 
-```
+```markdown
 your-skill-name/
 ├── SKILL.md          # (必须) 核心执行说明书
 ├── scripts/          # (可选) 存放可执行的脚本
