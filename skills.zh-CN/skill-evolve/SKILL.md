@@ -2,7 +2,7 @@
 name: skill-evolve
 description: 对指定 SKILL 执行一次完整的结构进化：优化目录结构、精简冗余内容、拆分参考文档，以提升可读性和维护性。当用户需要改进、重构或规范化已有 SKILL.md 时使用。
 ---
-# SKILL 进化
+# Skill Evolve
 
 ## Overview
 
