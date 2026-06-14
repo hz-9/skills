@@ -116,11 +116,14 @@ description: 对指定 SKILL 执行一次完整的结构进化：优化目录结
     - 路径匹配时避免子串匹配方式，推荐使用精确匹配（如目录名或完整路径），防止误判相似名称
 - **术语规范**
     - Skill 所有文件中使用的领域术语，必须在 `## Definitions` 中有明确定义；引用的术语与 Definitions 中的定义名称必须完全一致（大小写敏感）；
+- **自洽性规范**
+    - Review List 检查项必须覆盖 Rules 中所有约束性规则，确保 Rules 与 Review List 一一对应；
+    - Workflow 中定义的退出路径（如正常完成、用户终止）必须在 Rules 和 Review List 中有所对应；
+    - Workflow 步骤应显式覆盖 Rules 中约束性规则引用的执行逻辑，确保严格按 Workflow 执行即可满足所有 Rules 约束；
 - **格式规范**
     - 标点符号：须遵循[标点符号使用规范](references/punctuation-convention.md)，在 Workflow 步骤中拆分为标点检查子步骤进行检查；
     - 规范文件的引号风格统一：中文使用弯引号 `""`，禁止在正文中使用 `「」` 替代弯引号；
     - Definitions、Prerequisites 等非分支节的行末使用句号 `。` 结尾，不使用分支分号 `；`；
-
 
 ## Examples
 
@@ -194,6 +197,8 @@ AI   > 收到，以自动化模式执行 skill-evolve：
     - [ ] 扩展目录：需引入 scripts/、tests/ 或 schemas/ 的已评估
     - [ ] 优化过程无中断迹象：检查是否存在未完成的迁移（目标文件已创建但原内容未删除）、或 REFERENCE.md 拆分后链接更新不完整的中间态
     - [ ] 分组完整性：Rules 分组和 Review List 分组名称互斥、覆盖全面、无重叠
+    - [ ] 自洽性：Review List 检查项与 Rules 约束规则一一对应，不遗漏；Workflow 退出路径在 Rules 和 Review List 中均有覆盖
+    - [ ] Workflow 步骤已显式覆盖 Rules 中所有约束性规则引用的执行逻辑
 - **格式规范检查**
     - [ ] 标点符号：对照[标点符号使用规范](references/punctuation-convention.md#验证清单)逐项确认
 - **术语检查**
