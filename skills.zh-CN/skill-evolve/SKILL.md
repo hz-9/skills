@@ -125,20 +125,38 @@ description: 对指定 SKILL 执行一次完整的结构进化：优化目录结
 
 ### 对话交互示例
 
+**交互式优化：AI 逐项确认用户偏好**
+
 ```markdown
-> **用户**：帮我优化 skills.zh-CN/example-skill/SKILL.md
->
-> **AI**：检查元数据…description 缺少触发条件。
+用户 > 帮我优化 skills.zh-CN/example-skill/SKILL.md
 
-<!-- 此时 AI 通过 AskUserQuestion 弹出选项：添加触发条件 / 保持现状，阻塞等待用户选择 -->
+AI   > 检查元数据…description 缺少触发条件。
+      是否添加触发条件？
+用户 > 添加触发条件
 
-> **用户**（选择）：添加触发条件
->
-> **AI**：已更新 description。目录对齐中…缺少 Definitions 和 Review List。
+AI   > 已更新 description。目录对齐中…缺少 Definitions 和 Review List。
+      是否补齐缺失目录？
+用户 > 补齐
 
-<!-- 此时 AI 通过 AskUserQuestion 弹出选项：补齐 / 留空占位，阻塞等待用户选择 -->
+AI   > Definitions 已补充。引用检查…REFERENCE.md 应拆分为多个文件。
+      是否自动拆分？
+用户 > 自动拆分
+```
 
-> ...后续步骤均以相同方式通过 AskUserQuestion 进行交互确认...
+示例 2：
+
+**自动化优化：AI 自行决策，无阻塞等待**
+
+```markdown
+用户 > 对 my-skill/SKILL.md 执行优化，所有决策由你自行处理
+
+AI   > 收到，以自动化模式执行 skill-evolve：
+      - 元数据检查：description 缺少触发条件 → 已自动补充
+      - 目录对齐：缺少 Prerequisites 和 Review List → 已自动补齐
+      - 引用检查：REFERENCE.md 存在死链 → 已删除无效链接
+
+      ✅ 优化完成，共修复 4 个问题（高 1 / 中 2 / 低 1）
+      详细报告已保存至 docs/
 ```
 
 ### 执行成功示例
