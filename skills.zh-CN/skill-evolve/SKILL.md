@@ -1,12 +1,14 @@
 ---
-name: skill-optimizer
-description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容、拆分参考文档，以提升可读性和维护性。当用户需要改进、重构或规范化已有 SKILL.md 时使用。
+name: skill-evolve
+description: 对指定 SKILL 执行一次完整的结构进化：优化目录结构、精简冗余内容、拆分参考文档，以提升可读性和维护性。当用户需要改进、重构或规范化已有 SKILL.md 时使用。
 ---
-# Skill Optimizer
+# SKILL 进化
 
 ## Overview
 
-规范化和优化已有 SKILL.md，对齐标准模板结构、精简冗余内容、拆分参考文档以提升可维护性。
+对已有 SKILL.md 执行一次性结构进化：对齐标准模板、精简冗余内容、拆分参考文档以提升可维护性。
+
+由 skill-evolve-cycle 循环进化技能在小循环A 阶段调用，也可独立运行完成单次优化。
 
 ## Definitions
 
@@ -110,6 +112,7 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
     - 当 `references/` 下规范文件间发生冲突时，展开格式优先于压缩规则（branch-logic-writing.md 的树形分支、interaction-writing.md 的交互范式均不被 text-optimization.md 规则重新压缩）；
     - `## Examples` 中的所有示例必须由 markdown 代码块（`` ```markdown ... ``` ``）包裹，禁止以裸文本呈现示例；
     - reference 文件中的示例使用抽象变量名（如 `[文件名]`、`[目录名]`）代替具体数值或路径，避免因被引用文件内容变更导致示例与事实不一致；
+    - 路径匹配时避免子串匹配方式，推荐使用精确匹配（如目录名或完整路径），防止误判相似名称
 - **术语规范**
     - Skill 所有文件中使用的领域术语，必须在 `## Definitions` 中有明确定义；引用的术语与 Definitions 中的定义名称必须完全一致（大小写敏感）；
 - **格式规范**
@@ -163,6 +166,7 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
     - [ ] 内容精简后，对照[文本简化验证清单](references/text-optimization.md#验证清单)逐项确认
 - **链接与锚点检查**
     - [ ] 链接与锚点：引用层次不超过一层、无死链（含文件内 #anchor 锚点可跳转到对应标题）、无未解析占位符
+    - [ ] 交叉引用一致性：Workflow 中所有步骤编号引用与对应节标题编号一致
 - **交互与逻辑检查**
     - [ ] 交互环节：对照[交互式操作验证清单](references/interaction-writing.md#验证清单)逐项确认
     - [ ] 分支逻辑：对照[分支逻辑验证清单](references/branch-logic-writing.md#验证清单)逐项确认
@@ -180,6 +184,7 @@ description: 该技能用于优化 SKILL.md 的目录结构、精简冗余内容
 
 ## References
 
+- [skill-evolve-cycle](../skill-evolve-cycle/SKILL.md)：SKILL 循环进化编排器
 - [SKILL 目录结构](references/directory-structure.md)
 - [SKILL 模板](template.md)
 - [文本简化规则](references/text-optimization.md)

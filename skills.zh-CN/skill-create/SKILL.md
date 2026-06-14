@@ -7,16 +7,16 @@ description: 创建新的 agent 技能，包含合适的结构、渐进式信息
 
 ## Overview
 
-从零创建新的 agent 技能。按标准模板结构组织内容、打包目录结构和参考文档。创建完成后可交由 `skill-optimizer` 进一步优化。
+从零创建新的 agent 技能。按标准模板结构组织内容、打包目录结构和参考文档。创建完成后可交由 `skill-evolve` 进一步优化。
 
 ## Definitions
 
-- **标准模板结构**：由 skill-optimizer 维护的 SKILL.md 标准结构，包含 Overview、Definitions、Prerequisites、Workflow、Rules、Examples、Review List、References 八个目录；
+- **标准模板结构**：由 skill-evolve 维护的 SKILL.md 标准结构，包含 Overview、Definitions、Prerequisites、Workflow、Rules、Examples、Review List、References 八个目录；
 - **引用层次**：SKILL.md 直接链接 `references/` 下文件为一层，`references/` 文件不应再链接外部资源；
 
 ## Prerequisites
 
-- 已安装 `skill-optimizer`（本技能依赖其 template.md 和 directory-structure.md）；
+- 已安装 `skill-evolve`（本技能依赖其 template.md 和 directory-structure.md）；
 - 明确技能要解决什么问题、在什么场景下触发；
 - 了解该领域的相关知识。
 
@@ -29,10 +29,10 @@ description: 创建新的 agent 技能，包含合适的结构、渐进式信息
    - 是否有参考资料？
    - 是否有与其他技能的互补或边界关系？
 
-2. **创建目录结构** — 参照 [目录结构标准](../skill-optimizer/references/directory-structure.md) 创建文件和文件夹，至少创建 `SKILL.md`；
+2. **创建目录结构** — 参照 [目录结构标准](../skill-evolve/references/directory-structure.md) 创建文件和文件夹，至少创建 `SKILL.md`；
 
 3. **起草 SKILL.md** —
-   - 参照 [SKILL 模板](../skill-optimizer/template.md) 按标准目录顺序组织内容；
+   - 参照 [SKILL 模板](../skill-evolve/template.md) 按标准目录顺序组织内容；
    - description 须遵循 [Rules](#rules) 中的格式要求；
    - 每个目录写入引导语，帮助 AI 理解该目录用途；
    - SKILL.md 不超过 300 行；超过 300 行或有大量复杂内容时拆分到 `references/`；
@@ -46,7 +46,7 @@ description: 创建新的 agent 技能，包含合适的结构、渐进式信息
 
 5. **与用户复核** — 展示草稿并确认：是否覆盖用例、有无遗漏、有无需调整的章节；
 
-6. **最终检查** — 参照 [template.md 的 Review List](../skill-optimizer/template.md#review-list) 逐项确认。
+6. **最终检查** — 参照 [template.md 的 Review List](../skill-evolve/template.md#review-list) 逐项确认。
 
 ## Rules
 
@@ -93,9 +93,9 @@ AI   > 最终检查：参照 template.md 的 Review List 逐项确认 ✓
 
 ## Review List
 
-参照 [template.md 的 Review List](../skill-optimizer/template.md#review-list) 逐项确认。
+参照 [template.md 的 Review List](../skill-evolve/template.md#review-list) 逐项确认。
 
 ## References
 
-- [SKILL 目录结构](../skill-optimizer/references/directory-structure.md)
-- [SKILL 模板](../skill-optimizer/template.md)
+- [SKILL 目录结构](../skill-evolve/references/directory-structure.md)
+- [SKILL 模板](../skill-evolve/template.md)
