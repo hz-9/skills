@@ -8,12 +8,12 @@ alwaysApply: true
 ### Skills 目录
 
 - **开发源** — `skills.zh-CN/` 是唯一的开发场景，所有新增/修改在此进行
-- **英文目录** — `skills/` 由 `sync-skill-and-command` Project 指令翻译同步生成，禁止直接编辑。若进行了开发，则直接提供用户。
+- **英文目录** — `skills/` 由 `sync-skill-and-command` Project 指令翻译同步生成，禁止直接编辑。
 
 ### Commands 目录
 
 - **开发源** — `commands.zh-CN/` 是唯一的开发场景，所有新增/修改在此进行
-- **英文目录** — `commands/` 由 `sync-skill-and-command` Project 指令翻译同步生成，禁止直接编辑。若进行了开发，则直接提供用户。
+- **英文目录** — `commands/` 由 `sync-skill-and-command` Project 指令翻译同步生成，禁止直接编辑。
 
 ### 同步指令
 
