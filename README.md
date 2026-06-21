@@ -11,7 +11,7 @@ Each skill is a self-contained directory following the [agent-skills specificati
 | [grill-me](./skills/grill-me/SKILL.md) | Stress-test plans and designs through relentless questioning |
 | [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | Automate changeset file generation and commit for pnpm monorepos |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | Migrate Rush.js monorepo to Nx + pnpm workspace + Changesets |
-| [skill-create](./skills/skill-create/SKILL.md) | Create agent skills with proper structure and progressive disclosure |
+| [skill-create](./skills/skill-create/SKILL.md) | Create agent skills following skill-evolve standards |
 | [skill-optimizer](./skills/skill-optimizer/SKILL.md) | Optimize SKILL.md structure, condense redundant content, split reference docs |
 | [zoom-out](./skills/zoom-out/SKILL.md) | Get high-level context and module maps for unfamiliar code |
 

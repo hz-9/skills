@@ -11,7 +11,7 @@
 | [grill-me](./skills/grill-me/SKILL.md) | 持续追问拷问计划与设计，遍历决策树每个分支 |
 | [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | pnpm monorepo 变更集文件自动生成与提交 |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | 将 Rush.js monorepo 迁移到 Nx + pnpm workspace + Changesets |
-| [skill-create](./skills/skill-create/SKILL.md) | 创建符合规范的 agent 技能，含结构和资源打包 |
+| [skill-create](./skills/skill-create/SKILL.md) | 参照 skill-evolve 标准创建 agent 技能 |
 | [skill-optimizer](./skills/skill-optimizer/SKILL.md) | 优化 SKILL.md 结构、精简冗余、拆分参考文档 |
 | [zoom-out](./skills/zoom-out/SKILL.md) | 缩小视角，获取代码模块地图和高层次上下文 |
 
