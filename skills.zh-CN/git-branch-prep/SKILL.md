@@ -15,30 +15,47 @@ description: 调用 git-commit-helper 生成提交信息 → 提炼分支名 →
 
 ## Prerequisites
 
-- Git 2.0+
-- 当前在 Git 仓库目录中
-- 存在可供分析的 Git 变更（暂存区变更、工作区变更、指定 commit 或分支范围）
+- **标准路径**（通过 Git 获取变更）：
+  - Git 2.0+
+  - 当前在 Git 仓库目录中
+  - 存在可供分析的 Git 变更（暂存区变更、工作区变更、指定 commit 或分支范围）
 
 ## Workflow
 
-0. **前置检查** — 验证环境完整性；
-   0.1 判断是否在 Git 仓库中：
-       - 是 -> 下一步；
-       - 否 -> 报告"当前不在 Git 仓库中"，终止流程；
-   0.2 判断 Git 版本是否 >= 2.0：
-       - 是 -> 下一步；
-       - 否 -> 提示升级 Git，终止流程；
-   0.3 检测是否处于合并过程中（通过 `test -f "$(git rev-parse --git-dir)/MERGE_MSG"`）：
-       - 是 -> 检查冲突是否已解决（通过 `git diff --name-only --diff-filter=U`）：
-         - 存在未解决冲突 -> 提示用户先解决冲突，终止流程；
-         - 冲突已全部解决 -> 生成合并提交信息，终止流程；
-       - 否 -> 下一步；
-   0.4 检测并处理游离 HEAD：
-       - 执行 `git branch --show-current`：
-         - 返回空（游离状态）-> 基于当前 commit 推断源头分支（参见 [保护分支处理](references/protected-branch.md#detached-head-检测)）：
-           - 推断成功 -> 切换到该分支（`git checkout <branch>`），执行后进入下一步；
-           - 推断失败或切换失败 -> 报告异常原因，终止流程；
-         - 返回非空（已关联分支）-> 下一步；
+0. **前置检查** — 确保环境已就绪；
+  0.1 判断是否在 Git 仓库中：
+    - 是 -> 下一步；
+    - 否 -> 报告"当前不在 Git 仓库中"，终止流程；
+  0.2 判断 Git 版本是否 >= 2.0：
+    - 是 -> 下一步；
+    - 否 -> 提示升级 Git，终止流程；
+  0.3 检测并处理游离 HEAD：
+    - 执行 `git branch --show-current`：
+      - 返回空（游离状态）-> 基于当前 commit 推断源头分支（参见 [保护分支处理](references/protected-branch.md#detached-head-检测)）：
+        - 推断成功 -> 切换到该分支（`git checkout <branch>`），执行后进入下一步；
+        - 推断失败或切换失败 -> 报告异常原因，终止流程；
+      - 返回非空（已关联分支）-> 下一步；
+  0.4 检测是否处于冲突中：
+    - 是否处于合并冲突中（检测 `$(git rev-parse --git-dir)/MERGE_MSG` 是否存在）：
+      - 是 -> 告知用户处于合并冲突中，终止流程；
+      - 否 -> 下一步；
+    - 是否处于拣选冲突中（检测 `$(git rev-parse --git-dir)/CHERRY_PICK_HEAD` 是否存在）：
+      - 是 -> 告知用户处于拣选冲突中，终止流程；
+      - 否 -> 下一步；
+    - 是否处于回滚冲突中（检测 `$(git rev-parse --git-dir)/REVERT_HEAD` 是否存在）：
+      - 是 -> 告知用户处于回滚冲突中，终止流程；
+      - 否 -> 下一步；
+    - 是否处于变基冲突中（检测 `$(git rev-parse --git-dir)/rebase-merge/REBASE_HEAD` 或 `$(git rev-parse --git-dir)/rebase-apply/` 是否存在）：
+      - 是 -> 告知用户处于变基冲突中，终止流程；
+      - 否 -> 下一步；
+  0.5 检测工作区是否存在未暂存或未跟踪的变更（通过 `git status --porcelain` 判断）：
+    - 是（存在未暂存/未跟踪变更） -> 通过 AskUserQuestion 提供选项，阻塞等待用户选择：
+      - 是的，先执行 `git add .` -> 执行 `git add .`，执行后进入步骤 0.6；
+      - 否，不暂存 -> 终止流程；
+    - 否（工作区干净） -> 进入步骤 0.6；
+  0.6 判断是否存在可供分析的 Git 变更（暂存区/工作区/commit/分支范围）：
+    - 是 -> 下一步（进入步骤 1）；
+    - 否 -> 告知用户无变更可分析，终止流程；
 
 1. **生成 commit message** — 调用 git-commit-helper 执行完整提交信息生成流程；
    1.1 暂存所有变更：`git add -A`；
