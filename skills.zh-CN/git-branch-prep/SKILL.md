@@ -58,7 +58,7 @@ description: 调用 git-commit-helper 生成提交信息 → 提炼分支名 →
          - 创建新分支 `<derived-branch-name>` -> 记录用户决策（进入 4.1 分支处理 — 选择 “创建新分支”）；
    3.2 通过 AskUserQuestion 询问是否推送：
        - 提交并推送，生成 PR 链接 -> 记录用户决策（进入 4.3 推送流程是，进行推送）；
-       - 本地提交，仅生成 PR 链接 -> 记录用户决策（当4.2 执行过后，跳过 4.3，进入 4.4 记录 PR 命令）；
+       - 本地提交，仅生成 PR 链接 -> 记录用户决策（当 4.2 执行过后，跳过 4.3，进入 4.4 记录 PR 命令）；
 
 4. **执行决策** — 根据步骤 3 的用户选择执行操作；
    4.1 分支处理（根据步骤 3.1 的决策）：
@@ -71,7 +71,7 @@ description: 调用 git-commit-helper 生成提交信息 → 提炼分支名 →
          - 失败 -> 告知用户提交失败原因，终止流程；
    4.3 推送（根据步骤 3.2 的决策，若用户选择推送）：
        - 检查远端分支是否存在：`git ls-remote --exit-code origin "<branch>" 2>/dev/null`：
-         - 存在（退出码 0）-> 检查本地是否落后于远端：`git rev-list --count HEAD..origin/"<branch>"`：
+         - 存在（退出码 0）-> 刷新本地远程跟踪分支：`git fetch origin "<branch>"`，检查本地是否落后于远端：`git rev-list --count HEAD..origin/"<branch>"`：
            - 落后（计数 > 0）-> 执行 rebase：`git rebase origin/"<branch>"`（若冲突则暂停并告知用户，参见 [错误处理](references/error-handling.md)）；
            - 未落后 -> 下一步；
          - 不存在 -> 下一步；
@@ -80,27 +80,36 @@ description: 调用 git-commit-helper 生成提交信息 → 提炼分支名 →
          - 成功 -> 从输出中提取 PR 链接（进入 4.4）；
          - 失败 -> 告知用户推送失败原因，记录推送命令到最终输出日志（进入 4.4）；
    4.4 记录 PR 信息（基于 [PR 链接规范](references/pr-link-standard.md)）：
-       - 若已推送成功 -> 优先从推送输出中正则匹配 `remote:.*(https://github.com/.*/pull/new/.*)` 提取 PR 链接；若输出中无 PR 链接，则通过 `git remote get-url origin` 提取仓库信息，按 [PR 链接规范](references/pr-link-standard.md#基于远端地址构建-pr-链接) 构建 3 个合并目标的 PR 链接（dev/stage/master）；
-       - 若未推送或推送失败 -> 通过 `git remote get-url origin` 提取仓库信息，按 [PR 链接规范](references/pr-link-standard.md#基于远端地址构建-pr-链接) 构建 3 个合并目标的 PR 链接，连同推送命令一并记录到最终输出日志；
+       - 若已推送成功 -> 优先从推送输出中正则匹配 `remote:.*(https://github.com/.*/pull/new/.*)` 提取 PR 链接；若输出中无 PR 链接，则通过 `git remote get-url origin` 提取仓库信息，按 [PR 链接规范](references/pr-link-standard.md#基于远端地址构建-pr-链接) 根据 origin 实际存在的合并目标分支动态构建 PR 链接；
+       - 若未推送或推送失败 -> 通过 `git remote get-url origin` 提取仓库信息，按 [PR 链接规范](references/pr-link-standard.md#基于远端地址构建-pr-链接) 根据 origin 实际存在的分支动态构建 PR 链接，连同推送命令一并记录到最终输出日志；
 
-5. **复核检查** — 无此步骤（Skill Evolve 及 Skill Evolve Cycle 优化时，不改变此步骤）；
+5. **复核检查** — 对照 [Review List](#review-list)，确认执行结果；
+   5.1 判断 Review List 是否有内容：
+       - 否 -> 直接进入步骤 6（成果输出）；
+       - 是 -> 下一步；
+   5.2 逐项检查 Review List 中的每一项：
+       - 全部通过 -> 进入 5.3；
+       - 存在未通过项 -> 记录失败项，终止流程；
+   5.3 输出最终信息摘要（含分支名、commit message、推送状态、PR 链接等维度），进入步骤 6；
 
 6. **成果输出** — 输出执行摘要，告知完成；
    输出结构化摘要（具体格式请参考"成果输出示例"），含以下信息：
    - 分支名、commit message；
    - 推送状态；
-   - PR 链接（3 个合并目标：dev / stage / master）；
+   - PR 链接（根据 origin 存在的分支动态生成合并目标链接）；
    - 待执行命令（若有）；
 
 ## Rules
 
-- commit message 必须采用英文，保持简洁，禁止包含 `[skip ci]`
-- 分支命名体现变更本质（feat/refactor/docs 等），避免泛化命名（如 `new-branch`）
-- PR 链接优先从 `git push` 输出提取，若无法获取则基于远端地址构建 3 个合并目标（dev/stage/master）的链接
+- commit message 必须采用英文，保持简洁，禁止包含 `[skip ci]`；
+- 分支命名体现变更本质（feat/refactor/docs 等），避免泛化命名（如 `new-branch`）；
+- PR 链接优先从 `git push` 输出提取，若无法获取则基于远端地址构建，合并目标根据 origin 实际存在的分支动态生成；
 
 ## Examples
 
-### 对话交互示例 1：创建新分支
+### 对话交互示例
+
+**创建新分支**
 
 ```markdown
 用户> /git-ship
@@ -130,7 +139,7 @@ AI > ✅ Step 4: 执行决策
      4.4 → PR 链接已提取
 ```
 
-### 对话交互示例 2：当前分支提交
+**当前分支提交**
 
 ```markdown
 用户> /git-ship
@@ -159,7 +168,7 @@ AI > ✅ Step 4: 执行决策
      4.2 → 提交完成
 ```
 
-### 对话交互示例 3：推送
+**推送**
 
 ```markdown
 用户> /git-ship
@@ -169,7 +178,8 @@ AI > ⏳ Step 1: 生成 commit message...
      正在调用 git-commit-helper 分析变更...
      最终 commit message：feat(auth): enhance login validation
 
-     ⏳ Step 2: 提炼分支名（已在当前分支，跳过）
+     ⏳ Step 2: 提炼分支名...
+     分支名：feat/enhance-login-validation
 
      ⏳ Step 3: 询问决策...
      [AskUserQuestion]
@@ -191,7 +201,26 @@ AI > ✅ Step 4: 执行决策
 
 ### 复核检查示例
 
-> Skill Evolve 及 Skill Evolve Cycle 优化时，不改变此步骤
+```markdown
+AI > 进入复核检查，Review List 包含 10 个检查项，开始逐项验收：
+
+**Commit Message 检查**
+  - 🟩 commit message 符合 Conventional Commits 规范
+  - 🟩 采用英文，保持简洁
+
+**分支名检查**
+  - 🟩 分支名格式正确
+
+**安全规范检查**
+  - 🟩 保护分支未被直接提交
+
+**PR 链接检查**
+  - 🟩 PR 链接已正确生成
+
+（此处仅展示各组代表性通过项；AI 运行时将逐项输出全部 10 个检查项结果）
+
+✅ 全部通过，进入成果输出。
+```
 
 ### 成果输出示例
 
@@ -210,19 +239,28 @@ AI > ✅ Step 4: 执行决策
 |---------|-------------|------|
 | dev | `https://github.com/{OWNER_REPO}/compare/dev...{branch}?expand=1` | 日常开发合入 |
 | stage | `https://github.com/{OWNER_REPO}/compare/stage...{branch}?expand=1` | 预发布环境合入 |
-| staging | `https://github.com/{OWNER_REPO}/compare/staging...{branch}?expand=1` | 预发布环境合入 |
-| prod | `https://github.com/{OWNER_REPO}/compare/prod...{branch}?expand=1` | 生产环境合入 |
 | master | `https://github.com/{OWNER_REPO}/compare/master...{branch}?expand=1` | 生产环境合入 |
 ```
 
-> 为当前分支 `<branch>` 生成合并分支的 PR 链接, origin 存在以下哪些分支，才显示对应行。
+> 为当前分支 `<branch>` 生成合并分支的 PR 链接，origin 存在以下哪些分支，才显示对应行。
 
 ## Review List
 
-- [ ] commit message 符合 Conventional Commits 规范
-- [ ] 分支名格式为 `<type>/<kebab-description>`
-- [ ] 保护分支未被直接提交
-- [ ] PR 链接正确生成（dev / stage / master 三个合并目标）
+- **Commit Message 检查**
+  - [ ] commit message 符合 Conventional Commits 规范
+  - [ ] 采用英文，保持简洁
+  - [ ] 未包含 `[skip ci]` 等 CI 跳过标记
+- **分支名检查**
+  - [ ] 分支名遵循 `<type>/<kebab-description>` 格式，长度 ≤ 50 字符
+  - [ ] 体现变更本质（feat/refactor/docs 等），避免泛化命名
+- **安全规范检查**
+  - [ ] 保护分支未被直接提交
+- **PR 链接检查**
+  - [ ] PR 链接已正确生成（优先从推送输出提取，否则基于远端地址构建）
+  - [ ] PR 链接覆盖 origin 中实际存在的合并目标分支
+- **交互完整性检查**
+  - [ ] 所有用户抉择环节已使用 AskUserQuestion 阻塞等待用户选择
+  - [ ] 错误场景均已妥善处理（分支已存在、无效变更、rebase 冲突等）
 
 ## References
 
