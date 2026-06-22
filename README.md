@@ -4,16 +4,18 @@ Each skill is a self-contained directory following the [agent-skills specificati
 
 ## Skills
 
-| Name | Description |
-|------|-------------|
-| [git-commit-helper](./skills/git-commit-helper/SKILL.md) | Generate Conventional Commits messages with AI analysis |
-| [git-workflow-enhanced](./skills/git-workflow-enhanced/SKILL.md) | Automate the full Git workflow: commit message → branch → prepare-commit-msg hook |
-| [grill-me](./skills/grill-me/SKILL.md) | Stress-test plans and designs through relentless questioning |
-| [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | Automate changeset file generation and commit for pnpm monorepos |
+| Skill Name | Description |
+|---------|------|
+| [git-branch-prep](./skills/git-branch-prep/SKILL.md) | Call git-commit-helper to generate commit message → derive branch name → confirm branch and push → create PR link |
+| [git-cleanup](./skills/git-cleanup/SKILL.md) | Clean up stale branches and tags in a Git repository |
+| [git-commit-helper](./skills/git-commit-helper/SKILL.md) | Intelligently generate Git commit messages following the Conventional Commits specification |
+| [grill-me](./skills/grill-me/SKILL.md) | Continuously question plans and designs, traversing every branch of the decision tree |
+| [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | Automatically generate and commit changeset files for pnpm monorepo |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | Migrate Rush.js monorepo to Nx + pnpm workspace + Changesets |
-| [skill-create](./skills/skill-create/SKILL.md) | Create agent skills following skill-evolve standards |
-| [skill-optimizer](./skills/skill-optimizer/SKILL.md) | Optimize SKILL.md structure, condense redundant content, split reference docs |
-| [zoom-out](./skills/zoom-out/SKILL.md) | Get high-level context and module maps for unfamiliar code |
+| [skill-create](./skills/skill-create/SKILL.md) | Create agent skills following the skill-evolve standard |
+| [skill-evolve](./skills/skill-evolve/SKILL.md) | Optimize SKILL.md structure, streamline redundancy, split reference documents |
+| [skill-evolve-cycle](./skills/skill-evolve-cycle/SKILL.md) | Execute cyclic evolution on a specified SKILL: optimize → review → fix → merge → backfeed |
+| [zoom-out](./skills/zoom-out/SKILL.md) | Zoom out to get code module maps and high-level context |
 
 ### Installation
 
@@ -23,63 +25,67 @@ Each skill is a self-contained directory following the [agent-skills specificati
 # Install all skills
 npx skills add hz-9/skills
 
-# Install a specific skill
+# Install only specific skills
+npx skills add hz-9/skills --skill git-branch-prep
+npx skills add hz-9/skills --skill git-cleanup
 npx skills add hz-9/skills --skill git-commit-helper
-npx skills add hz-9/skills --skill git-workflow-enhanced
 npx skills add hz-9/skills --skill grill-me
 npx skills add hz-9/skills --skill pnpm-changeset-workflow
 npx skills add hz-9/skills --skill rush-to-nx
 npx skills add hz-9/skills --skill skill-create
-npx skills add hz-9/skills --skill skill-optimizer
+npx skills add hz-9/skills --skill skill-evolve
+npx skills add hz-9/skills --skill skill-evolve-cycle
 npx skills add hz-9/skills --skill zoom-out
 ```
 
-#### Install script
+#### Install via Script
 
-Supports `SKILLS_DIR` environment variable to override the target path (default `~/.qoder/skills`).
+Supports `SKILLS_DIR` environment variable to override target path (default `~/.qoder/skills`).
 
 ```bash
 bash scripts/install-skills.sh
 ```
 
-One-liner (no clone required):
+One-liner (no clone needed):
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-skills.sh)
 
-# Specify a custom directory:
+# Specify custom directory:
 SKILLS_DIR=~/.qoder/skills bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-skills.sh)
 ```
 
 ### Deprecated
 
-| Name | Description |
-|------|-------------|
-| [grill-me-lite](./deprecated/skills/grill-me-lite/SKILL.md) | Original lite version of grill-me, deprecated, use full [grill-me](./skills/grill-me/SKILL.md) instead |
+| Skill Name | Description |
+|---------|------|
+| [git-workflow-enhanced](./deprecated/skills/git-workflow-enhanced/SKILL.md) | Deprecated, no longer maintained |
+| [grill-me-lite](./deprecated/skills/grill-me-lite/SKILL.md) | Original lite version of grill-me, deprecated. Use the full [grill-me](./skills/grill-me/SKILL.md) instead |
+| [grill-with-docs](./deprecated/skills/grill-with-docs/SKILL.md) | Deprecated, no longer maintained |
 | [write-a-skill](./deprecated/skills/write-a-skill/SKILL.md) | Renamed to skill-create, please use the new name |
 
 ## Commands
 
-The repository also provides reusable Qoder commands in the [commands/](./commands/) directory. Commands are `.md` files that can be invoked via the command palette in Qoder.
+The [commands/](./commands/) directory provides reusable Qoder commands. Commands are `.md` files that can be invoked via Qoder's command panel.
 
 | Command | Description |
-|---------|-------------|
-| [git-ship](./commands/git-ship.md) | Create branch from staged changes, generate commit messages, push, and output PR link |
+|------|------|
+| [git-ship](./commands/git-ship.md) | Create branches, generate commit messages, and push based on staged content, finally outputting a PR link |
 
-#### Install script
+#### Install via Script
 
-Supports `COMMANDS_DIR` environment variable to override the target path (default `~/.agents/commands`).
+Supports `COMMANDS_DIR` environment variable to override target path (default `~/.agents/commands`).
 
 ```bash
 bash scripts/install-commands.sh
 ```
 
-One-liner (no clone required):
+One-liner (no clone needed):
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-commands.sh)
 
-# Specify a custom directory:
+# Specify custom directory:
 COMMANDS_DIR=~/.qoder/commands bash <(curl -s https://raw.githubusercontent.com/hz-9/skills/master/scripts/install-commands.sh)
 ```
 

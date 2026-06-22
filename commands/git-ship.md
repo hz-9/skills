@@ -1,5 +1,5 @@
 ---
-description: Create a branch from staged changes, generate commit message, push, and finally output a PR link.
+description: Create branches, generate commit messages, and push based on staged content, finally outputting a PR link.
 ---
 
 ## Definition
