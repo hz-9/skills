@@ -48,22 +48,19 @@ Call [git-commit-helper](../git-commit-helper/SKILL.md) to generate a commit mes
     - Check for rebase conflict (check if `$(git rev-parse --git-dir)/rebase-merge/REBASE_HEAD` or `$(git rev-parse --git-dir)/rebase-apply/` exists):
       - Yes -> inform user they are in a rebase conflict, terminate flow;
       - No -> next step;
-  0.5 Check if the working tree has unstaged or untracked changes (via `git status --porcelain`):
-    - Yes (unstaged/untracked changes exist) -> provide options via AskUserQuestion, block-wait for user selection:
-      - Yes, run `git add .` first -> execute `git add .`, then proceed to step 0.6;
-      - No, do not stage -> terminate flow;
-    - No (working tree is clean) -> proceed to step 0.6;
-  0.6 Check if Git changes are available for analysis (staged/working tree/commit/branch range):
+  0.6 Check if the working tree has unstaged or untracked changes (via `git status --porcelain`):
+    - Yes (unstaged/untracked changes exist) -> execute `git add .`, proceed to step 0.7;
+    - No (working tree is clean) -> proceed to step 0.7;
+  0.7 Check if Git changes are available for analysis (staged/working tree/commit/branch range):
     - Yes -> next step (proceed to step 1);
     - No -> inform user no changes available for analysis, terminate flow;
 
 1. **Generate Commit Message** — Call git-commit-helper to execute the full commit message generation workflow:
-   1.1 Stage all changes: `git add -A`;
-   1.2 Call [git-commit-helper](../git-commit-helper/SKILL.md) to execute its complete workflow:
+   1.1 Call [git-commit-helper](../git-commit-helper/SKILL.md) to execute its complete workflow:
        - Fully follow all internal interaction logic and branch decisions of git-commit-helper;
        - **Must not skip any AskUserQuestion interaction steps of git-commit-helper**;
        - If git-commit-helper triggers AskUserQuestion, must block-wait for user selection;
-   1.3 Capture the final output of git-commit-helper (commit message and structured logs);
+   1.2 Capture the final output of git-commit-helper (commit message and structured logs);
 
 2. **Derive Branch Name** — Follow [Branch Name Derivation Rules](references/branch-name-rules.md) to extract the branch name from the commit message;
 
@@ -82,7 +79,7 @@ Call [git-commit-helper](../git-commit-helper/SKILL.md) to generate a commit mes
        - If creating a new branch -> `git checkout -b <derived-branch-name> 2>/dev/null || git checkout <derived-branch-name>`, proceed to next step;
        - If committing on current branch -> keep current branch, proceed to next step;
    4.2 Commit:
-       - Execute commit: `git commit -m "<message>"`;
+       - Execute commit: `NO_VERIFY=1 git commit -m "<message>"`;
        - Verify commit success (confirm working tree is clean via `git status --porcelain`):
          - Success -> proceed to next step;
          - Failure -> inform user of the commit failure reason, terminate flow;
