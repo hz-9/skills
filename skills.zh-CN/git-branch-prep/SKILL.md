@@ -48,22 +48,19 @@ description: 调用 git-commit-helper 生成提交信息 → 提炼分支名 →
     - 是否处于变基冲突中（检测 `$(git rev-parse --git-dir)/rebase-merge/REBASE_HEAD` 或 `$(git rev-parse --git-dir)/rebase-apply/` 是否存在）：
       - 是 -> 告知用户处于变基冲突中，终止流程；
       - 否 -> 下一步；
-  0.5 检测工作区是否存在未暂存或未跟踪的变更（通过 `git status --porcelain` 判断）：
-    - 是（存在未暂存/未跟踪变更） -> 通过 AskUserQuestion 提供选项，阻塞等待用户选择：
-      - 是的，先执行 `git add .` -> 执行 `git add .`，执行后进入步骤 0.6；
-      - 否，不暂存 -> 终止流程；
-    - 否（工作区干净） -> 进入步骤 0.6；
+  0.6 检测工作区是否存在未暂存或未跟踪的变更（通过 `git status --porcelain` 判断）：
+    - 是（存在未暂存/未跟踪变更） -> 执行 `git add .`，进入步骤 0.7；
+    - 否（工作区干净） -> 进入步骤 0.7；
   0.6 判断是否存在可供分析的 Git 变更（暂存区/工作区/commit/分支范围）：
     - 是 -> 下一步（进入步骤 1）；
     - 否 -> 告知用户无变更可分析，终止流程；
 
 1. **生成 commit message** — 调用 git-commit-helper 执行完整提交信息生成流程；
-   1.1 暂存所有变更：`git add -A`；
-   1.2 调用 [git-commit-helper](../git-commit-helper/SKILL.md) 执行其完整工作流：
+   1.1 调用 [git-commit-helper](../git-commit-helper/SKILL.md) 执行其完整工作流：
        - 完全遵循 git-commit-helper 内部的全部交互逻辑和分支决策；
        - **不得跳过 git-commit-helper 的任何 AskUserQuestion 交互步骤**；
        - 若 git-commit-helper 触发 AskUserQuestion，必须阻塞等待用户选择；
-   1.3 捕获 git-commit-helper 的最终输出（commit message 及结构化日志）；
+   1.2 捕获 git-commit-helper 的最终输出（commit message 及结构化日志）；
 
 2. **提炼分支名** — 遵守 [分支名称提炼规则](references/branch-name-rules.md)，从 commit message 提取分支名称；
 
@@ -82,7 +79,7 @@ description: 调用 git-commit-helper 生成提交信息 → 提炼分支名 →
        - 若选择创建新分支 -> `git checkout -b <derived-branch-name> 2>/dev/null || git checkout <derived-branch-name>`，执行后进入下一步；
        - 若选择在当前分支提交 -> 保持当前分支，进入下一步；
    4.2 提交：
-       - 执行提交：`git commit -m "<message>"`；
+       - 执行提交：`NO_VERIFY=1 git commit -m "<message>"`；
        - 验证提交是否成功（`git status --porcelain` 确认工作区干净）：
          - 成功 -> 进入下一步；
          - 失败 -> 告知用户提交失败原因，终止流程；

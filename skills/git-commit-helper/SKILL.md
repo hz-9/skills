@@ -69,10 +69,8 @@ Intelligently generate Git commit messages following the Conventional Commits sp
       - Yes -> Inform the user there is a rebase conflict, terminate the flow;
       - No -> Next step;
   0.6 Detect if there are unstaged or untracked changes in the working directory (via `git status --porcelain`):
-    - Yes (unstaged/untracked changes exist) -> Provide options via AskUserQuestion, blocking until user selects:
-      - Yes, stage first with `git add .` -> Execute `git add .`, then go to step 0.7;
-      - No, do not stage -> Terminate the flow;
-    - No (working directory clean) -> Go to step 0.7;
+    - Yes (unstaged/untracked changes exist) -> execute `git add .`, proceed to step 0.7;
+    - No (working directory clean) -> proceed to step 0.7;
   0.7 Check if there are Git changes available for analysis (staging/working directory/commit/branch range):
     - Yes -> Next step (enter step 1);
     - No -> Inform the user there are no changes to analyze, terminate the flow;
@@ -81,6 +79,7 @@ Intelligently generate Git commit messages following the Conventional Commits sp
    1.1 Determine the type of user input:
        - User has specified the change source intent (staging area/recent commit/branch range, etc.) -> Map directly to the corresponding scenario, enter step 2;
        - User has provided a commit id or branch range -> Enter step 2;
+       - User has not provided any change information, but the staging area has content -> Scenario A, enter step 2;
        - User has not provided any change information -> Provide options via AskUserQuestion, blocking until user selects:
          - Staging area -> Scenario A, enter step 2;
          - Specific commit -> Get the user-input commit ID via AskUserQuestion (leave empty to default to HEAD), blocking until user input; after user input -> Scenario B, enter step 2;
@@ -129,7 +128,7 @@ Intelligently generate Git commit messages following the Conventional Commits sp
        - Provide options via AskUserQuestion, blocking until user selects:
          - Yes, link Issue -> User inputs Issue number (e.g. `#123`), append to footer, then go to 4.5;
          - No, do not link -> Go to 4.5;
-   4.5 Output the user's confirmed choices (selected option, breaking change marker, linked Issue), go to step 5;
+   4.5 Output the user's confirmed choices (selected option, breaking change marker, linked Issue), no further confirmation needed from the user, go to step 5;
 
 5. **Review check** — Verify the commit message against the [Review List](#review-list);
   - Check if the Review List has content:
