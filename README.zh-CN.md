@@ -47,7 +47,11 @@ npx skills add hz-9/skills --skill zoom-out-lite
 支持环境变量 `SKILLS_DIR` 覆盖目标路径（默认 `~/.qoder/skills`）。
 
 ```bash
+# 从 GitHub 远程安装
 bash scripts/install-skills.sh
+
+# 从本地仓库直接安装（无需网络）
+bash scripts/install-skills-local.sh
 ```
 
 一行命令（无需克隆仓库）：
@@ -80,7 +84,11 @@ SKILLS_DIR=~/.qoder/skills bash <(curl -s https://raw.githubusercontent.com/hz-9
 支持环境变量 `COMMANDS_DIR` 覆盖目标路径（默认 `~/.agents/commands`）。
 
 ```bash
+# 从 GitHub 远程安装
 bash scripts/install-commands.sh
+
+# 从本地仓库直接安装（无需网络）
+bash scripts/install-commands-local.sh
 ```
 
 一行命令（无需克隆仓库）：

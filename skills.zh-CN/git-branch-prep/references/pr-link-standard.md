@@ -29,10 +29,10 @@ OWNER_REPO=$(echo "$REMOTE_URL" | sed 's|.*github.com[\/:]||' | sed 's|\.git$||'
 
 | 合并目标 | PR 链接格式 | 说明 |
 |---------|-------------|------|
-| dev | `https://github.com/{OWNER_REPO}/compare/dev...{branch}?expand=1` | 日常开发合入 |
-| stage | `https://github.com/{OWNER_REPO}/compare/stage...{branch}?expand=1` | 预发布环境合入 |
-| staging | `https://github.com/{OWNER_REPO}/compare/staging...{branch}?expand=1` | 预发布环境合入 |
-| prod | `https://github.com/{OWNER_REPO}/compare/prod...{branch}?expand=1` | 生产环境合入 |
-| master | `https://github.com/{OWNER_REPO}/compare/master...{branch}?expand=1` | 生产环境合入 |
+| dev | `<a href="https://github.com/{OWNER_REPO}/compare/dev...{branch}?expand=1">创建 PR</a>` | 日常开发合入 |
+| stage | `<a href="https://github.com/{OWNER_REPO}/compare/stage...{branch}?expand=1">创建 PR</a>` | 预发布环境合入 |
+| staging | `<a href="https://github.com/{OWNER_REPO}/compare/staging...{branch}?expand=1">创建 PR</a>` | 预发布环境合入 |
+| prod | `<a href="https://github.com/{OWNER_REPO}/compare/prod...{branch}?expand=1">创建 PR</a>` | 生产环境合入 |
+| master | `<a href="https://github.com/{OWNER_REPO}/compare/master...{branch}?expand=1">创建 PR</a>` | 生产环境合入 |
 
 > 优先从 `git push` 输出中提取 PR 链接（有上游提示），其次使用此方法构建通用链接。

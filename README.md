@@ -47,7 +47,11 @@ npx skills add hz-9/skills --skill zoom-out-lite
 Supports `SKILLS_DIR` environment variable to override target path (default `~/.qoder/skills`).
 
 ```bash
+# Install from GitHub (remote)
 bash scripts/install-skills.sh
+
+# Install from local repository (no network required)
+bash scripts/install-skills-local.sh
 ```
 
 One-liner (no clone needed):
@@ -80,7 +84,11 @@ The [commands/](./commands/) directory provides reusable Qoder commands. Command
 Supports `COMMANDS_DIR` environment variable to override target path (default `~/.agents/commands`).
 
 ```bash
+# Install from GitHub (remote)
 bash scripts/install-commands.sh
+
+# Install from local repository (no network required)
+bash scripts/install-commands-local.sh
 ```
 
 One-liner (no clone needed):
