@@ -1,252 +1,237 @@
 ---
 name: git-cleanup
-description: Clean up stale Worktrees, branches and tags in a Git repository, including non-current Worktrees, merged branches, orphan branches, non-version tags and orphan tags. Use when the user requests cleaning or organizing Git Worktrees/branches/tags, finds leftover local references after remote deletion, or mentions "clean up stale branches/unnecessary tags".
+description: Clean up stale Worktrees, branches, and tags in a Git repository. Includes non-current Worktrees, merged branches, orphan branches, non-version tags, and orphan tags. Use when the user requests cleaning or organizing Git Worktrees/branches/tags, finds residual local references after remote deletion, or mentions "clean up stale branches/unnecessary tags".
 ---
 
 # Git Cleanup
 
 ## Overview
 
-Systematically clean up stale Worktrees, branches and tags in a Git repository. Follow the "Scan -> Display -> User Confirm -> Delete" workflow, processing local Worktrees, local branches, and local tags in sequence, then deleting remote references after a second confirmation. Automatically creates a backup before execution.
+Systematically clean up stale Worktrees, branches, and tags in a Git repository. Operates in a "comprehensive scan -> single confirmation -> unified deletion" flow: first scan all categories (Worktree/branch/tag) at once, then confirm deletions with the user in one pass, execute deletion uniformly, and after secondary confirmation, delete remote references uniformly. Automatically creates a backup before execution.
 
 ## Definitions
 
-- <a id="Stale-Worktree"></a>**Stale Worktree**: A non-current Worktree (any Worktree other than the user's current working directory);
-- <a id="Current-Worktree"></a>**Current Worktree**: The Worktree corresponding to the user's current working directory, automatically skipped and not deletable;
 - <a id="Stale-Branch"></a>**Stale Branch**: A branch meeting any of the following conditions:
-    - **Merged Branch**: A local branch that has been merged into the main branch;
-    - **Orphan Branch**: A local branch whose remote-tracking branch no longer exists after running `git fetch -p` (showing `: gone]`);
+    - **Merged branch**: A local branch that has been merged into the main branch;
+    - **Orphan branch**: A local branch whose remote tracking branch no longer exists after executing `git fetch -p` (displays `: gone]`);
 - <a id="Stale-Tag"></a>**Stale Tag**: A tag meeting any of the following conditions:
-    - **Non-version Tag**: A tag that does not match a semantic versioning pattern (e.g., `v1.2.3`, `1.2.3`, `v1.2.3-beta.1`);
-    - **Orphan Tag**: A tag pointing to a commit that is not referenced by any local or remote branch;
-- <a id="Main-Branch"></a>**Main Branch**: The primary development branch of the repository (e.g., `main` or `master`), auto-detected by AI and confirmed with the user;
-- <a id="Protected-Branch"></a>**Protected Branch**: The main branch and `develop` branch, automatically skipped and not deletable;
-- <a id="Currently-Checked-Out-Branch"></a>**Currently Checked Out Branch**: The branch pointed to by `HEAD`, automatically skipped and not deletable.
-- <a id="Worktree-Bound-Branch"></a>**Worktree Bound Branch**: A branch that has been checked out and is in use by a Worktree. Deleting it would cause the corresponding Worktree to malfunction, automatically skipped and not deletable.
+    - **Non-version tag**: A tag that does not match the semantic versioning pattern (e.g., `v1.2.3`, `1.2.3`, `v1.2.3-beta.1`);
+    - **Orphan tag**: A tag pointing to a commit that is not referenced by any local or remote branch;
+- <a id="Stale-Worktree"></a>**Stale Worktree**: Non-current Worktree (Worktrees outside the user's current working directory);
+- <a id="Current-Worktree"></a>**Current Worktree**: The Worktree corresponding to the user's current working directory, automatically skipped and cannot be deleted;
+- <a id="Main-Branch"></a>**Main Branch**: The primary development branch of the repository (e.g., `main` or `master`), auto-detected by the AI and confirmed with the user;
+- <a id="Protected-Branch"></a>**Protected Branch**: The main branch and `develop` branch, automatically skipped and cannot be deleted;
+- <a id="Current-Checked-Out-Branch"></a>**Current Checked-out Branch**: The branch pointed to by `HEAD`, automatically skipped and cannot be deleted.
+- <a id="Worktree-Bound-Branch"></a>**Worktree-bound Branch**: A branch that has been checked out by a Worktree, automatically skipped and cannot be deleted;
 
 ## Prerequisites
 
 - Git 2.0+;
 - Currently in a Git repository directory (verifiable via `git rev-parse --git-dir`);
-- User has push access to the remote repository (if remote deletion is needed).
+- `jq` (JSON processor, required by check-env.sh / scan.sh / delete.sh / setup.sh and other scripts);
+- User has push permissions to the remote repository (if remote deletion is required).
 
 ## Workflow
 
-0. **Pre-flight Check** — Verify environment, detect main branch, create backup;
-  0.1 Verify currently in a Git repository:
-    - Yes -> next step;
-    - No -> report "Not currently in a Git repository", terminate flow;
-  0.2 Check Git version >= 2.0:
-    - Yes -> next step;
-    - No -> prompt to upgrade Git, terminate flow;
-  0.3 Execute `git fetch -p` to prune removed remote-tracking references:
-    - Success -> next step;
-    - Failure -> record failure reason, continue execution (orphan branch detection still based on current state);
-  0.4 Auto-detect main branch (check `refs/heads/main`, `refs/heads/master`, `refs/heads/prod` in order):
-    - Detected -> provide options via AskUserQuestion, block and wait for user selection:
-      - Confirm main branch name -> use that name, proceed to next step;
-      - Manually specify another branch -> user enters branch name, proceed to next step;
-    - Not detected -> provide options via AskUserQuestion, block and wait for user selection:
-      - Manually specify main branch name -> user enters branch name, proceed to next step;
-  0.5 Identify [Current Worktree](#Current-Worktree) via `git worktree list` and [Currently Checked Out Branch](#Currently-Checked-Out-Branch) via `git branch --show-current`;
-  0.6 Create backup (`cp -a` in the same parent directory as the repo, naming format `<repo-name>.bak.<YYYYMMDDTHHMMSS>`):
-    - Success -> next step;
-    - Failure -> report "Backup creation failed", terminate flow;
+0. **Pre-check** — Ensure the environment is ready;
+  0.1 Execute environment check (`bash scripts/check-env.sh`):
+    - Check if the script executed successfully:
+      - Success -> Parse JSON, check for "error" field:
+        - Present -> Report script error (e.g., missing jq dependency), terminate flow;
+        - Absent -> Report each check result:
+      - "in-git-repo" failed -> Report "Not in a Git repository", terminate flow;
+      - "git-version" failed -> Prompt to upgrade Git to 2.0+, terminate flow;
+      - "fetch-prune" failed -> Record failure reason, continue execution;
+      - "has-remote" -> Store the result (used in step 4.1 for remote deletion);
+    - All checks passed -> Proceed to step 0.2;
+  0.2 Execute environment setup (`bash scripts/setup.sh`):
+    - Check if the script executed successfully:
+      - Success -> Parse JSON, check for "error" field:
+        - Present -> Report script error (e.g., missing jq dependency), terminate flow;
+        - Absent -> Read the following information:
+      - main_branch_candidate -> Auto-detected main branch name;
+      - current_worktree -> Current Worktree path;
+      - current_branch -> Current checked-out branch;
+      - backup_created / backup_path -> Backup status and path;
+    - Check if backup was created successfully:
+      - Success -> Proceed to step 0.3;
+      - Failed -> Report "Backup creation failed", terminate flow;
+  0.3 Confirm main branch — Provide options via AskUserQuestion, block and wait for user selection:
+    - Main branch detected -> Provide options:
+      - Confirm main branch name -> Use that name, proceed to step 1;
+      - Manually specify another branch -> User enters branch name, proceed to step 1;
+    - Main branch not detected -> Provide options:
+      - Manually specify main branch name -> User enters branch name, proceed to step 1;
 
-1. **Scan and Delete Stale Worktree** — Collect and display all Worktrees, only delete non-current Worktrees;
-  1.1 Use `git worktree list --porcelain` to list all Worktree information, identify [Current Worktree](#Current-Worktree) and mark the "Is Current" column;
-  1.2 Display all Worktrees in table format (columns: Path / Associated Branch / Is Current), automatically skip deleting the current Worktree;
-  1.3 Collect all non-current Worktrees as candidate list;
-  1.4 Check if the candidate list is empty:
-    - Yes -> report "No non-current Worktrees found to clean", proceed to Step 2;
-    - No -> provide options via AskUserQuestion, block and wait for user selection:
-      - Confirm delete all -> delete all candidate Worktrees, proceed to next step;
-      - Select partial deletion -> prompt user to enter Worktree paths (comma-separated), parse and display the deletion list, wait for user confirmation before deleting;
-      - Skip all -> proceed to Step 2;
-  1.5 For each Worktree confirmed by the user, execute `git worktree remove <path>`:
-    - Success -> record success;
-    - Failure (e.g., uncommitted changes) -> prompt user about `git worktree remove --force <path>` for forced deletion, confirm via AskUserQuestion;
-    - Record each deletion result (success / failure and reason);
+1. **Comprehensive scan** — Execute scan script, output three category JSON arrays;
+  1.1 Execute scan script (`bash scripts/scan.sh --main-branch <main_branch>`):
+    - Check if the script executed successfully:
+      - Success -> Parse JSON, check for "error" field:
+        - Present -> Report script error (e.g., missing jq dependency), terminate flow;
+        - Absent -> Get worktrees, branches, and tags arrays;
+      - Failure -> Report "Scan script execution failed", terminate flow;
+  1.2 Check if all three arrays are empty:
+    - Yes -> Report "No stale references found to clean up", terminate flow;
+    - No -> Proceed to step 2;
 
-2. **Scan and Delete Stale Branch (Local)** — Collect and display branches to clean;
-  2.1 Use `git worktree list --porcelain` to extract all Worktree-associated branches, mark as "Worktree-bound", automatically skip deletion;
-  2.2 Scan merged branches: `git branch --merged <main-branch> --format='%(refname:short)'`, filter out [Protected Branches](#Protected-Branch), [Currently Checked Out Branch](#Currently-Checked-Out-Branch) and Worktree-bound branches;
-  2.3 Scan orphan branches: `git branch -vv | awk '/: gone]/{if ($1 == "*") print $2; else print $1}'`, filter out [Protected Branches](#Protected-Branch), [Currently Checked Out Branch](#Currently-Checked-Out-Branch) and Worktree-bound branches;
-  2.4 Merge both lists into a candidate set, deduplicate;
-  2.5 Check if the candidate set is empty:
-    - Yes -> report "No stale branches found to clean", proceed to Step 3;
-    - No -> display in table format (columns: Branch Name / Type / Reason / Bound Worktree), provide options via AskUserQuestion, block and wait for user selection:
-      - Confirm delete all -> delete all candidate branches, proceed to next step;
-      - Select partial deletion -> prompt user to enter branch names (comma-separated), parse and display the deletion list, wait for user confirmation before deleting;
-      - Skip all -> proceed to Step 3;
-  2.6 For each branch confirmed by the user, execute deletion:
-    - Merged branches: `git branch -d <branch-name>`;
-    - Orphan branches: `git branch -D <branch-name>` (since orphan branches have no remote tracking, `-d` may refuse, use `-D`);
-    - Record each deletion result (success / failure and reason);
+2. **Category confirmation** — Display scan results by category, confirm deletion for each;
+  2.1 Display scan results — Render the three JSON arrays as Markdown tables:
+      - Worktree table (columns: Path / Linked Branch / Is Current);
+      - Branch table (columns: Branch Name / Type / Reason);
+      - Tag table (columns: Tag Name / Type / Reason);
+  2.2 Confirm Worktree — Provide options via AskUserQuestion, block and wait for user selection:
+      - Yes, delete all non-current Worktrees -> Mark all for deletion, proceed to 2.3;
+      - Select partial deletion -> Prompt user to enter paths (comma-separated), confirm, proceed to 2.3;
+      - Skip -> Proceed to 2.3;
+  2.3 Confirm branches — Provide options via AskUserQuestion, block and wait for user selection:
+      - Yes, delete all stale branches -> Mark all for deletion, proceed to 2.4;
+      - Select partial deletion -> Prompt user to enter branch names (comma-separated), confirm, proceed to 2.4;
+      - Skip -> Proceed to 2.4;
+  2.4 Confirm tags — Provide options via AskUserQuestion, block and wait for user selection:
+      - Yes, delete all stale tags -> Mark all for deletion, proceed to 2.5;
+      - Select partial deletion -> Prompt user to enter tag names (comma-separated), confirm, proceed to 2.5;
+      - Skip -> Proceed to 2.5;
+  2.5 Check if any references are marked for deletion:
+      - Yes (items exist) -> Proceed to step 3;
+      - No (all skipped) -> Report "No items selected for deletion", terminate flow;
 
-3. **Scan and Delete Stale Tag (Local)** — Collect and display tags to clean;
-  3.1 Scan non-version tags: `git tag -l | grep -v -E '^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.]+)?$'`;
-  3.2 Scan orphan tags: Collect all tag list (`git tag -l`), for each tag use `git branch --all --contains <tag-name>` to check:
-    - No branch contains it -> mark as orphan tag;
-    - Some branch contains it -> skip, continue to next tag;
-  3.3 Merge both lists into a candidate set, deduplicate;
-  3.4 Check if the candidate set is empty:
-    - Yes -> report "No stale tags found to clean", proceed to Step 4;
-    - No -> display in table format (columns: Tag Name / Type / Reason), provide options via AskUserQuestion, block and wait for user selection:
-      - Confirm delete all -> delete all candidate tags, proceed to next step;
-      - Select partial deletion -> prompt user to enter tag names (comma-separated), parse and display the deletion list, wait for user confirmation before deleting;
-      - Skip all -> proceed to Step 4;
-  3.5 For each tag confirmed by the user, execute `git tag -d <tag-name>`, record each deletion result;
+3. **Unified execution** — Use deletion script to execute all confirmed deletions;
+  3.1 Execute deletion script (`bash scripts/delete.sh --worktrees '<json>' --branches '<json>' --tags '<json>'`):
+    - Check if the script executed successfully:
+      - Failure -> Report "Deletion script execution failed", go to step 5 (Abnormal exit handling);
+      - Success -> Parse JSON;
+      - Example data structure:
+        - `--worktrees '[{"path":"/path/to/wt"}]'`
+        - `--branches '[{"name":"feature/old","type":"merged"},{"name":"fix/temp","type":"orphan"}]'`
+        - `--tags '[{"name":"v0.1-alpha","type":"non-version"},{"name":"temp-tag","type":"orphan"}]'`
+    - Parse returned JSON result array, output deletion results (success/failure) line by line;
+    - When Worktree deletion fails, ask the user via AskUserQuestion whether to attempt force deletion (`git worktree remove --force <path>`):
+      - Yes -> Execute force deletion and output the result;
+      - No -> Skip this Worktree, continue processing subsequent deletions;
+  3.2 Output local deletion summary table (statistics of success/failure counts), see [Local Deletion Summary Example](#local-deletion-summary-example);
+  3.3 Proceed to step 4;
 
-4. **Remote Deletion (Second Confirmation)** — Output summary, then delete remote references;
-  4.1 Check if remote repository exists (`git remote`):
-    - Remote exists -> continue;
-    - Remote does not exist -> report "No remote configured for this repository, skip remote deletion", proceed to Step 6;
-  4.2 Output local deletion summary table:
-    - Worktree: list deleted Worktree paths and count, plus any failures (if any);
-    - Branches: list deleted branch names and count, plus any failures (if any);
-    - Tags: list deleted tag names and count, plus any failures (if any);
-    - Auto-skipped: list [Current Worktree](#Current-Worktree), [Currently Checked Out Branch](#Currently-Checked-Out-Branch), [Protected Branches](#Protected-Branch), [Worktree Bound Branches](#Worktree-Bound-Branch);
-  4.3 Check if any stale references were successfully deleted locally:
-    - Yes -> provide options via AskUserQuestion, block and wait for user selection:
-      - Confirm push remote deletion -> execute remote deletion, proceed to next step;
-      - Keep local deletion only -> skip remote deletion, proceed to next step;
-    - No (nothing deleted locally) -> report "No changes to sync to remote", proceed to Step 6;
-  4.4 For references confirmed for remote deletion, execute one by one:
-    - Delete remote branches: execute `git push origin --delete <branch-name>` for each branch;
-    - Delete remote tags: execute `git push origin --delete refs/tags/<tag-name>` for each tag;
-    - Record each deletion result (success / failure and reason);
-  4.5 Output final cleanup report (local + remote deletion statistics).
+4. **Remote deletion** — Execute remote deletion after secondary confirmation;
+  4.1 Get the has-remote result from step 0.1 check-env, check if there are local deletions:
+      - Remote exists and there are local deletions -> Provide options via AskUserQuestion, block and wait for user selection:
+        - Confirm pushing remote deletion -> Proceed to 4.2;
+        - Keep only local deletion -> Proceed to 4.3;
+      - Remote does not exist or no local deletions -> Report "No changes to sync to remote", proceed to step 6;
+  4.2 Execute remote deletion script (`bash scripts/remote-delete.sh --branches '<json>' --tags '<json>'`):
+    - Check if the script executed successfully:
+      - Failure -> Report "Remote deletion script execution failed", go to step 5 (Abnormal exit handling);
+      - Success -> Parse JSON;
+      - Example data structure:
+        - `--branches '[{"name":"feature/old-login"}]'`
+        - `--tags '[{"name":"temp-tag-123"}]'`
+      - Parse returned JSON, output deletion results line by line;
+  4.3 Output final cleanup report (local + remote deletion statistics);
 
-5. **Abnormal Exit Handling** — Output recovery guidance, jump here when any deletion step exits abnormally;
-  5.1 Check if a usable backup exists (successfully created during the Pre-flight Check step):
-    - Yes -> output backup path and restore command template:
-      ```
-      # If you need to restore mistakenly deleted data, run the following command:
-      rm -rf <repo-directory>
-      cp -a <backup-path>/<repo-name>.bak.<backup-timestamp> <repo-directory>
-      # Note: Rollback will overwrite all new changes after the rollback point, please confirm the current working state first
-      ```
-    - No -> report "No backup available, please check repository status";
-  5.2 Output summary of completed deletions so far (list of deleted Worktrees/Branches/Tags, if any);
-  5.3 Notify the user that the process has been safely terminated, provide manual recovery advice and backup path information, terminate flow.
+5. **Abnormal exit handling** — Output recovery guidance, jump here on abnormal exit during any deletion step;
+  5.1 Check step 0.2 setup.sh output for backup_created result:
+    - Yes -> Output backup path and recovery command, see [Backup Recovery Example](#backup-recovery-example);
+    - No -> Report "No backup available, please check repository status";
+  5.2 Output summary of completed deletion operations in this run (list of deleted Worktrees/Branches/Tags, if any);
+  5.3 Inform the user that execution has been safely terminated, provide manual recovery suggestions and backup path information, terminate flow.
 
-6. **Review Check** — Check against [Review List](#review-list) to confirm execution results;
+6. **Review check** — Compare against [Review List](#review-list), confirm execution results;
   6.1 Check if Review List has content:
-    - No -> proceed directly to next step (output results);
-    - Yes -> next step;
-  6.2 Check each item in [Review List](#review-list) in order, check if passed (based on "Review Check Example" display output):
-    - Yes -> continue to next check item;
-    - No -> provide options via AskUserQuestion, block and wait for user selection:
-      - Retry the failed step -> return to corresponding step and re-execute;
-      - Skip failed items and continue -> mark as incomplete, proceed to output results;
-      - Terminate flow -> terminate flow;
-  6.3 After all checks pass, proceed to next step (output results);
+    - No -> Directly proceed to next step (output results);
+    - Yes -> Next step;
+  6.2 Check each item in [Review List](#review-list) sequentially for pass/fail (based on content displayed in "review check example"):
+    - Pass -> Continue to next item;
+    - Fail -> Provide options via AskUserQuestion, block and wait for user selection:
+      - Retry failed step -> Return to corresponding step and re-execute;
+      - Skip failed item and continue -> Mark as incomplete, proceed to output results;
+      - Terminate flow -> Terminate flow;
+  6.3 All passed -> Proceed to next step (output results);
 
-7. **Output Results** — Output cleanup summary, backup path and rollback instructions, notify completion;
-  7.1 Output structured summary (including statistics for each dimension of this cleanup);
-  7.2 Output backup path and restore command template:
-    ```
-    # If you need to restore mistakenly deleted data, run the following command:
-    rm -rf <repo-directory>
-    cp -a <backup-path>/<repo-name>.bak.<backup-timestamp> <repo-directory>
-    # Note: Rollback will overwrite all new changes after the rollback point, please confirm the current working state first
-    ```
-  7.3 Prompt the user to confirm the current working state and the correctness of the backup path before rollback;
-  7.4 Notify cleanup complete;
+7. **Output results** — Output cleanup summary, backup path, and rollback guidance, inform completion;
+  7.1 Output structured summary (including statistics for each dimension cleaned in this run);
+  7.2 Output backup path and recovery command (see [Backup Recovery Example](#backup-recovery-example))
+  7.3 Remind the user to confirm the current working state and the correctness of the backup path before rollback;
+  7.4 Inform that cleanup is complete;
 
 ## Rules
 
-- **Metadata Conventions**
-  - description follows the format: first sentence describes what the skill does, second sentence describes trigger condition ("Use when..."), written in third person, no more than 1024 characters;
-- **Structure Conventions**
-  - Standard directory only applies to SKILL.md itself, does not affect other files in the directory;
-- **Content Conventions**
-  - Scan results and deletion summaries are presented in table format;
-  - Table column headers are clear, including necessary dimensions like "Reference Name / Type / Reason / Status";
-  - Final cleanup report includes statistical counts for each dimension (deleted / skipped / failed, etc.);
-- **Behavioral Conventions**
-  - Backup failure cannot be skipped; must either succeed or terminate the flow;
-  - [Current Worktree](#Current-Worktree) and [Currently Checked Out Branch](#Currently-Checked-Out-Branch) are automatically skipped and not included in scan list;
-  - [Worktree Bound Branches](#Worktree-Bound-Branch) are automatically skipped and not included in deletion candidate list;
-  - [Protected Branches](#Protected-Branch) ([Main Branch](#Main-Branch) + `develop`) are automatically skipped and not included in scan list;
-  - Remote deletion must go through second confirmation; direct push after first confirmation is prohibited;
-  - All user decision-making interactions (confirming deletion, selecting operation mode, confirming [Main Branch](#Main-Branch), etc.) **must** use the `AskUserQuestion` tool; plain text follow-ups are prohibited; pass questions and options into AskUserQuestion in a structured way, no more than 4 questions per call;
-  - Process Worktree first, then Branches, then Tags;
-  - Delete local references first, then remote references (two-phase);
-  - Must output deletion summary after each local deletion step, then output final summary before second confirmation;
-  - When a deletion command fails, record the failure reason and continue with subsequent deletions, do not interrupt the flow;
-- **Defensive Conventions**
-  - Before deleting any reference, confirm with the user through interactive questioning;
-- **Verification Conventions**
+- **Metadata Specification**
+  - Description follows the format: first sentence describes what the skill does, second sentence describes trigger conditions ("Use when..."), use third person, no more than 1024 characters;
+- **Structure Specification**
+  - Standard directory applies only to SKILL.md itself, does not affect other files in the directory;
+- **Content Specification**
+  - Scan results and deletion summaries should be presented in table format;
+  - Table column names should be clear, including necessary dimensions such as "Reference Name / Type / Reason / Status";
+  - Final cleanup report should include statistics for each dimension (Deleted / Skipped / Failed, etc.);
+- **Behavioral Specification**
+  - Backup failure must not be skipped; backup must succeed or the flow must terminate;
+  - [Current Worktree](#Current-Worktree) and [Current Checked-out Branch](#Current-Checked-Out-Branch) are automatically skipped and not included in the scan list;
+  - [Worktree-bound Branch](#Worktree-Bound-Branch) is automatically skipped and not included in the deletion candidate list;
+  - [Protected Branches](#Protected-Branch) ([Main Branch](#Main-Branch) + `develop`) are automatically skipped and not included in the scan list;
+  - Remote deletion must go through secondary confirmation; direct push deletion after the first confirmation is prohibited;
+  - All interactive steps involving user decision-making (confirming deletion, selecting operation mode, confirming [Main Branch](#Main-Branch), etc.) **must** use the `AskUserQuestion` tool; do not use plain text follow-up questions as a substitute; pass questions and options structured into AskUserQuestion, no more than 4 questions per call;
+  - First scan all categories uniformly, then execute deletion uniformly; deletion follows Worktree → Branch → Tag order;
+  - First delete local references, then delete remote references (two-phase process);
+  - After overall completion, output deletion summary, then perform remote deletion secondary confirmation;
+  - When a deletion command fails, record the failure reason and continue executing subsequent deletions; do not interrupt the flow;
+- **Defensive Specification**
+  - Confirm with the user through interactive questioning before deleting any files;
+- **Validation Specification**
   - Example content should be consistent with the latest Workflow steps;
 
 ## Examples
 
-### Dialog Interaction Examples
+### Dialogue Interaction Examples
 
-***Triggering the Skill***
+***Trigger Skill***
 
 ```markdown
-User > Help me clean up stale Worktrees, branches and tags in this repository
-AI   > Triggering git-cleanup skill, starting pre-flight checks...
+User > Help me clean up the stale Worktrees, branches, and tags in this repository
+AI   > Triggering git-cleanup skill, starting pre-checks...
 ```
 
-***Scan and Clean Stale Worktree***
+***Comprehensive Scan → Single Confirmation → Unified Execution***
 
 ```markdown
-AI   > Scanning Worktrees using git worktree list --porcelain...
+AI   > Scanning all categories of stale references using commands...
+       - Worktree：git worktree list --porcelain
+       - Branch：git branch --merged + git branch -vv
+       - Tag：git tag -l + Orphan tag detection
        
-      | Path | Associated Branch | Is Current |
-      |------|----------|----------|
-      | /path/to/repo | main | Yes (auto-skipped) |
-      | /path/to/linked-wt | feature/experiment | No |
-      | /path/to/old-wt | fix/hotfix-old | No |
-
-      2 non-current Worktrees found. Delete them?
-      [AskUserQuestion provides options: Delete All / Select Partial / Skip All]
-User > Delete All
-AI   > Deleting.../path/to/linked-wt (git worktree remove) successful.
-      /path/to/old-wt (git worktree remove) successful.
-      2 stale Worktrees deleted in total.
-```
-
-***Scan and Clean Stale Branch***
-
-```markdown
-AI   > Extracting Worktree-bound branches using git worktree list --porcelain...
-      Scanning stale branches using git branch --merged and git branch -vv...
+      Consolidated candidate table (grouped by category):
+      | Category | Reference Name | Reason |
+      |----------|----------------|--------|
+      | Worktree | /path/to/linked-wt | Non-current Worktree |
+      | Worktree | /path/to/old-wt | Non-current Worktree |
+      | Branch | feature/old-login | Merged into main |
+      | Branch | fix/temp-patch | Orphan branch (remote deleted)|
+      | Tag | v0.1-alpha | Non-version tag |
+      | Tag | temp-tag-123 | Orphan tag |
        
-      | Branch Name | Type | Reason | Bound Worktree |
-      |--------|------|------|---------------|
-      | feature/old-login | Merged | Merged into main | No |
-      | fix/temp-patch | Orphan | Remote tracking gone | No |
-      | feature/in-use | Merged | Merged into main | Yes (auto-skipped) |
+      Scanned 6 stale references total.
 
-      2 stale branches available for deletion. Delete them?
-      [AskUserQuestion provides options: Delete All / Select Partial / Skip All]
-User > Delete All
-AI   > Deleting...feature/old-login (git branch -d) successful.
-      fix/temp-patch (git branch -D) successful.
-      2 stale branches deleted in total.
-```
+      ---
+      Confirm Worktree (current step 2.2):
+      [AskUserQuestion providing options: Yes, delete all / Select partial / Skip]
+User > Yes, delete all
 
-***Scan and Clean Stale Tag***
+      ---
+      Confirm branches (current step 2.3):
+      [AskUserQuestion providing options: Yes, delete all / Select partial / Skip]
+User > Yes, delete all
 
-```markdown
-AI   > Scanning stale tags using git tag -l with regex filtering and orphan check...
-       
-      | Tag Name | Type | Reason |
-      |--------|------|------|
-      | v0.1-alpha | Non-version Tag | Does not match semver pattern |
-      | temp-tag-123 | Orphan Tag | No branch references this commit |
+      ---
+      Confirm tags (current step 2.4):
+      [AskUserQuestion providing options: Yes, delete all / Select partial / Skip]
+User > Yes, delete all
 
-      Delete these 2 stale tags?
-      [AskUserQuestion provides options: Delete All / Select Partial / Skip All]
-User > Delete All
-AI   > Deleting...v0.1-alpha (git tag -d) successful.
-      temp-tag-123 (git tag -d) successful.
-      2 stale tags deleted in total.
+AI   > Executing deletion...
+       Worktree：/path/to/linked-wt succeeded
+       Worktree：/path/to/old-wt succeeded
+       Branch：feature/old-login（git branch -d）succeeded
+       Branch：fix/temp-patch（git branch -D）succeeded
+       Tag：v0.1-alpha（git tag -d）succeeded
+       Tag：temp-tag-123（git tag -d）succeeded
+       Total 6 stale references deleted.
 ```
 
 ***Nothing to Clean***
@@ -257,135 +242,164 @@ AI   > Scan complete:
       - No merged or orphan branches
       - No non-version or orphan tags
       No deletion operations needed.
-      Backup path: ../my-project.bak.20260614T143052
+      Backup path：../my-project.bak.20260614T143052
       It is recommended to run this skill periodically to keep the repository clean.
 ```
 
 ***Select Partial Deletion***
 
 ```markdown
-AI   > Stale Worktree list is shown above. Delete them?
-      [AskUserQuestion provides options: Delete All / Select Partial / Skip All]
-User > Select Partial
+      ---
+      Confirm Worktree (current step 2.2):
+      [AskUserQuestion providing options: Yes, delete all / Select partial / Skip]
+User > Select partial
 AI   > Please specify Worktree paths to delete (comma-separated):
 User > /path/to/old-wt
-AI   > Deleting.../path/to/old-wt (git worktree remove) successful.
+      ---
+      Confirm branches (current step 2.3):
+      [AskUserQuestion providing options: Yes, delete all / Select partial / Skip]
+User > Skip
+      ---
+      Confirm tags (current step 2.4):
+      [AskUserQuestion providing options: Yes, delete all / Select partial / Skip]
+User > Yes, delete all
+AI   > Executing deletion.../path/to/old-wt（git worktree remove）succeeded.
+      temp-tag-123（git tag -d）succeeded.
 ```
 
-***Remote Deletion Second Confirmation***
+<a id="backup-recovery-example"></a>***Backup Recovery Example***
+
+```markdown
+# To restore after accidental deletion, execute the following command:
+rm -rf <repository_directory>
+cp -a <backup_path>/<repo_name>.bak.<backup_timestamp> <repository_directory>
+# Note: Rollback will overwrite all new changes after the checkpoint. Please confirm the current working state first.
+```
+
+<a id="local-deletion-summary-example"></a>***Local Deletion Summary Example***
 
 ```markdown
 AI   > Local deletion summary:
       - Worktree: 2 deleted
       - Branches: 2 deleted (feature/old-login, fix/temp-patch)
       - Tags: 1 deleted (v0.1-alpha)
-      - Auto-skipped: Current Worktree, current branch (main), protected (develop)
-
-      Sync these changes to remote?
-      [AskUserQuestion provides options: Confirm Push / Keep Local Deletion Only / View Details]
-User > Confirm Push
-AI   > Pushing remote deletions...
-      git push origin --delete feature/old-login (successful)
-      git push origin --delete fix/temp-patch (successful)
-      git push origin --delete refs/tags/v0.1-alpha (successful)
+      - Auto-skipped: Current Worktree, Current Checked-out Branch (main), Protected Branch (develop)
 ```
 
-***Keep Local Deletion Only***
+***Remote Deletion Secondary Confirmation***
+
+```markdown
+AI   > Local deletion summary:
+      - Worktree: 2 deleted
+      - Branches: 2 deleted (feature/old-login, fix/temp-patch)
+      - Tags: 1 deleted (v0.1-alpha)
+      - Auto-skipped: Current Worktree, Current Checked-out Branch (main), Protected Branch (develop)
+
+      Sync these changes to remote?
+      [AskUserQuestion providing options: Confirm push / Keep local only / View details]
+User > Confirm push
+AI   > Pushing remote deletion...
+      git push origin --delete feature/old-login (succeeded)
+      git push origin --delete fix/temp-patch (succeeded)
+      git push origin --delete refs/tags/v0.1-alpha (succeeded)
+```
+
+***Keep Local Only***
 
 ```markdown
 AI   > Sync these changes to remote?
-      [AskUserQuestion provides options: Confirm Push / Keep Local Deletion Only / View Details]
-User > Keep Local Deletion Only
+      [AskUserQuestion providing options: Confirm push / Keep local only / View details]
+User > Keep local only
 AI   > Skipped remote push. Local changes:
-       - Deleted Worktree: /path/to/linked-wt, /path/to/old-wt
-       - Deleted branches: feature/old-login, fix/temp-patch
-       - Deleted Tags: v0.1-alpha
-       - Backup path: ../my-project.bak.20260614T143052
-      Note: Corresponding references in the remote repository have not been deleted, please handle manually.
+       - Deleted Worktree：/path/to/linked-wt、/path/to/old-wt
+       - Deleted Branches：feature/old-login、fix/temp-patch
+       - Deleted Tags：v0.1-alpha
+       - Backup path：../my-project.bak.20260614T143052
+      Note: Corresponding references in the remote repository have not been deleted. Please handle manually.
 ```
 
 ### Review Check Example
 
 ```markdown
-AI > Entering review check, Review List contains 16 check items, starting verification:
+AI > Entering review check. Review List contains 16 items, starting verification:
 
 **Content Check**
-  - 🟩 All Worktrees confirmed for deletion have been successfully deleted
-  - 🟩 All branches confirmed for deletion have been successfully deleted
-  - 🟩 All tags confirmed for deletion have been successfully deleted
+  - 🟩 All user-confirmed Worktrees successfully deleted
+  - 🟩 All user-confirmed branches successfully deleted
+  - 🟩 All user-confirmed tags successfully deleted
   - 🟥 Remote deletion command failed (network error), deletion not pushed
-  - 🟩 Scan results displayed in table format with clear column headers
-  - 🟩 ...(remaining check items all passed)
+  - 🟩 Scan results presented in table format, column names clear
+  - 🟩 ...(remaining items all passed)
 
 **Behavior Check**
   - 🟩 `cp -a` backup created before execution, path and naming correct
-  - 🟩 `git fetch -p` executed, remote tracking references pruned
-  - 🟩 Current Worktree and currently checked out branch not included in deletion list
+  - 🟩 `git fetch -p` executed, remote tracking pruned
+  - 🟩 Current Worktree and current checked-out branch not included in deletion list
   - 🟩 Protected branches not included in deletion list
-  - 🟩 Second confirmation obtained before remote deletion
-  - 🟩 Followed "Worktree first, then Branches, then Tags" execution order
-  - 🟩 Followed "local first, remote second" two-phase deletion flow
+  - 🟩 Secondary confirmation obtained before remote deletion
+  - 🟩 Followed "comprehensive scan → single confirmation → unified execution (Worktree → Branch → Tag)" flow
+  - 🟩 Followed "local first, then remote" two-phase deletion flow
 
-**!!! Following check items FAILED !!!**
+**!!! The following checks FAILED !!!**
   - 🟥 Remote deletion failed (network error)
 
-[AskUserQuestion provides options: Retry Failed Step / Skip Failed Items and Continue / Terminate Flow]
+[AskUserQuestion providing options: Retry failed step / Skip failed item and continue / Terminate flow]
 
-User > Terminate Flow
-AI   > Flow terminated. It is recommended to manually check network connection and re-execute remote sync.
+User > Terminate flow
+AI   > Flow terminated. It is recommended to manually check network connectivity and re-execute remote sync.
 ```
 
-### Output Results Example
+### Output Example
 
-**Git Worktree, Branch and Tag Cleanup Execution Example:**
+**Git Worktree, Branch & Tag Cleanup Execution Effect Example:**
 
 ```markdown
 ## Cleanup Complete
 
-The Git repository cleanup operation has been completed. Below is the execution summary:
+The Git repository cleanup operation has been executed. Here is the execution summary:
 
 | Item | Count |
 |------|-------|
-| Stale Worktrees scanned | 2 |
-| Stale branches scanned | 3 |
-| Stale tags scanned | 2 |
-| Local Worktrees deleted | 2 |
-| Local branches deleted | 2 |
-| Local tags deleted | 2 |
-| Remote branches deleted | 2 |
-| Remote tags deleted | 2 |
-| Auto-skipped (current Worktree + current/protected branches) | 3 |
-| User refused deletion | 1 (test/experiment) |
+| Scanned stale Worktrees | 2 |
+| Scanned stale branches | 3 |
+| Scanned stale tags | 2 |
+| Locally deleted Worktrees | 2 |
+| Locally deleted branches | 2 |
+| Locally deleted tags | 2 |
+| Remotely deleted branches | 2 |
+| Remotely deleted tags | 2 |
+| Auto-skipped (Current Worktree + Current/Protected Branch) | 3 |
+| User declined to delete | 1 (test/experiment) |
 | Backup path | ../my-project.bak.20260614T143052 |
 
-All deletion operations completed, no pending operations.
+All deletion operations completed. No incomplete operations.
 ```
 
 ## Review List
 
 - **Content Check**
-  - [ ] All user-confirmed Worktrees have been successfully deleted (or failure reasons recorded)
-  - [ ] All user-confirmed branches have been successfully deleted (or failure reasons recorded)
-  - [ ] All user-confirmed tags have been successfully deleted (or failure reasons recorded)
-  - [ ] Remote deletion commands executed correctly, no push errors
-  - [ ] Scan results displayed in table format with clear column headers
-  - [ ] Deletion summary includes statistics for each dimension (deleted / skipped / failed)
+  - [ ] All user-confirmed Worktrees successfully deleted (or failure reason recorded)
+  - [ ] All user-confirmed branches successfully deleted (or failure reason recorded)
+  - [ ] All user-confirmed tags successfully deleted (or failure reason recorded)
+  - [ ] Remote deletion commands executed correctly with no push errors
+  - [ ] Consolidated candidate table grouped by Worktree/Branch/Tag, including count per group
+  - [ ] Deletion summary includes statistics for each dimension (Deleted / Skipped / Failed)
   - [ ] Final cleanup report includes both local and remote statistics
 - **Behavior Check**
   - [ ] `git fetch -p` executed, remote tracking references pruned (or confirmed skipped when no remote configured)
   - [ ] `cp -a` backup created before execution, path and naming correct
-  - [ ] [Current Worktree](#Current-Worktree) and [Currently Checked Out Branch](#Currently-Checked-Out-Branch) not included in deletion list
-  - [ ] [Worktree Bound Branches](#Worktree-Bound-Branch) not included in deletion candidate list
+  - [ ] [Current Worktree](#Current-Worktree) and [Current Checked-out Branch](#Current-Checked-Out-Branch) not included in deletion list
+  - [ ] [Worktree-bound Branch](#Worktree-Bound-Branch) not included in deletion candidate list
   - [ ] [Protected Branches](#Protected-Branch) ([Main Branch](#Main-Branch) + develop) not included in deletion list
-  - [ ] Second confirmation obtained before remote deletion
-  - [ ] Followed "Worktree first, then Branches, then Tags" execution order
-  - [ ] Followed "local first, remote second" two-phase deletion flow
-  - [ ] Abnormal exit correctly jumped to Abnormal Exit Handling step and output recovery guidance
+  - [ ] Secondary confirmation obtained before remote deletion
+  - [ ] Followed "comprehensive scan → single confirmation → unified execution (Worktree → Branch → Tag)" flow
+  - [ ] Followed "local first, then remote" two-phase deletion flow
+  - [ ] On abnormal exit, correctly jumped to abnormal exit handling step and output recovery guidance
 - **Defensive Check**
-  - [ ] When deletion command failed, failure reason correctly recorded and subsequent deletions continued
-- **Verification Check**
+  - [ ] When deletion command failed, correctly recorded failure reason and continued subsequent deletions
+- **Validation Check**
   - [ ] No interruption signs: no incomplete deletion operations
 
 ## References
 
-None (this skill is self-contained, no external reference documents needed).
+None (this skill has simple content and does not require external reference documents).
