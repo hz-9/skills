@@ -23,31 +23,23 @@ description: 基于暂存变更分析受影响的包，自动生成 pnpm changes
 - Git 仓库
 - 存在暂存变更（`git diff --staged --name-only` 有输出）
 - 项目启用了 pnpm changeset（存在 `.changeset/` 目录和 `@changesets/cli`）
+- `jq`（JSON 处理工具，check-env.sh 依赖此命令）
 - 存在 `pnpm-workspace.yaml` 文件（用于确定包目录结构）
 
 ## Workflow
 
 0. **前置检查** — 确保后续任务的先决条件已达成；
-  0.1 判断是否在 Git 仓库中：
-    - 是 -> 下一步；
-    - 否 -> 报告"当前不在 Git 仓库中"，终止流程；
-  0.2 判断 Git 版本是否 >= 2.0：
-    - 是 -> 下一步；
-    - 否 -> 提示升级 Git，终止流程；
-  0.3 检测工作区是否存在未暂存或未跟踪的变更（通过 `git status --porcelain` 判断）：
-    - 是（存在未暂存/未跟踪变更） -> 执行 `git add .`：
-      - 成功 -> 进入步骤 0.4；
-      - 失败 -> 报告错误详情，提示用户手动处理后重试，终止流程；
-    - 否（工作区干净） -> 进入步骤 0.4；
-  0.4 判断 Git 暂存区是否存在内容：
-    - 是 -> 下一步；
-    - 否 -> 告知用户无变更可分析，终止流程；
-  0.5 验证是否启用 pnpm changeset（`.changeset/` 目录和 `@changesets/cli`）：
-    - 全部满足 -> 下一步；
-    - 任意不满足 -> 报告未满足的条件，终止流程或提示用户处理；
-  0.6 验证 `pnpm-workspace.yaml` 存在且包含 `packages` 配置：
-    - 是 -> 下一步；
-    - 否 -> 报告"缺少 pnpm-workspace.yaml 或 packages 配置"，终止流程；
+  0.1 执行环境检查（`bash scripts/check-env.sh`）：
+    - 判断脚本是否执行成功：
+      - 成功 -> 解析 JSON，判断是否包含 "error" 字段：
+        - 是 -> 报告脚本错误（如缺少 jq 依赖），终止流程；
+        - 否 -> 逐项报告检查结果：
+      - "in-git-repo" 未通过 -> 报告"当前不在 Git 仓库中"，终止流程；
+      - "git-version" 未通过 -> 提示升级 Git 至 2.0+，终止流程；
+      - "has-changes" 未通过 -> 告知用户无变更可分析，终止流程；
+      - "pnpm-changeset" 未通过 -> 报告未满足的条件（缺少 .changeset/ 或 @changesets/cli），终止流程或提示用户处理；
+      - "pnpm-workspace" 未通过 -> 报告缺少 pnpm-workspace.yaml 或 packages 配置，终止流程；
+    - 全部检查通过 -> 进入步骤 1；
 
 1. **生成方案建议** — 分析暂存变更，为后续步骤生成两类方案；
   1.1 分析受影响的包
@@ -260,6 +252,8 @@ AI > 进入复核检查，Review List 包含 7 个检查项，开始逐项验收
 ```
 
 ### 成果输出示例
+
+>  成果输出，应该输出代码框内部的信息；
 
 **changeset 生成完毕**
 

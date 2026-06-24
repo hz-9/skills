@@ -29,10 +29,10 @@ Generate the PR link for the merge branch of the current branch `<branch>`. Only
 
 | Merge Target | PR Link Format | Description |
 |---------|-------------|------|
-| dev | `https://github.com/{OWNER_REPO}/compare/dev...{branch}?expand=1` | Daily development merge |
-| stage | `https://github.com/{OWNER_REPO}/compare/stage...{branch}?expand=1` | Pre-release environment merge |
-| staging | `https://github.com/{OWNER_REPO}/compare/staging...{branch}?expand=1` | Pre-release environment merge |
-| prod | `https://github.com/{OWNER_REPO}/compare/prod...{branch}?expand=1` | Production environment merge |
-| master | `https://github.com/{OWNER_REPO}/compare/master...{branch}?expand=1` | Production environment merge |
+| dev | `<a href="https://github.com/{OWNER_REPO}/compare/dev...{branch}?expand=1">Create PR</a>` | Daily development merge |
+| stage | `<a href="https://github.com/{OWNER_REPO}/compare/stage...{branch}?expand=1">Create PR</a>` | Pre-release environment merge |
+| staging | `<a href="https://github.com/{OWNER_REPO}/compare/staging...{branch}?expand=1">Create PR</a>` | Pre-release environment merge |
+| prod | `<a href="https://github.com/{OWNER_REPO}/compare/prod...{branch}?expand=1">Create PR</a>` | Production environment merge |
+| master | `<a href="https://github.com/{OWNER_REPO}/compare/master...{branch}?expand=1">Create PR</a>` | Production environment merge |
 
 > Prefer extracting the PR link from the `git push` output (with upstream hints), otherwise use this method to build a universal link.
