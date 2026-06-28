@@ -4,9 +4,13 @@
 # 参数：--branches <JSON数组> --tags <JSON数组>
 set -euo pipefail
 
-# Check if jq is available (all scripts depend on jq for JSON processing)
-if ! command -v jq &>/dev/null; then
-  echo "{\"error\":\"jq is required but not installed\"}"
+# shellcheck source=scripts/lib/common.sh
+. "$(dirname "$0")/lib/common.sh"
+require_jq
+
+# 校验远程名称是否为 origin
+if ! git remote get-url origin &>/dev/null; then
+  echo '{"error":"remote origin not found, remote delete is only supported for origin"}'
   exit 1
 fi
 

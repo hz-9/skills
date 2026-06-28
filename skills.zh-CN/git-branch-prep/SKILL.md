@@ -32,14 +32,9 @@ description: 调用 git-commit-helper 生成提交信息 → 提炼分支名 →
       - "in-git-repo" 未通过 -> 报告"当前不在 Git 仓库中"，终止流程；
       - "git-version" 未通过 -> 提示升级 Git 至 2.0+，终止流程；
       - "conflict-state" 未通过 -> 报告具体冲突类型（合并/拣选/回滚/变基），终止流程；
-      - "detached-head" 未通过 -> 进入步骤 0.2（需要处理游离 HEAD）；
+      - "detached-head" 未通过 -> 报告"当前处于游离 HEAD 状态，请切换到已有分支后再操作"，终止流程；
       - "has-changes" 未通过 -> 告知用户无变更可分析，终止流程；
-    - 全部检查通过（detached-head 除外） -> 进入步骤 1；
-  0.2 处理游离 HEAD（仅当脚本检测到游离状态时触发）：
-    - 基于当前 commit 推断源头分支（参见 [保护分支处理](references/protected-branch.md#detached-head-检测)）：
-      - 推断成功 -> 切换到该分支（`git checkout <branch>`），执行后进入步骤 1；
-      - 推断失败或切换失败 -> 报告异常原因，终止流程；
-
+    - 全部检查通过 -> 进入步骤 1；
 1. **生成 commit message** — 调用 git-commit-helper 执行完整提交信息生成流程；
    1.1 调用 [git-commit-helper](../git-commit-helper/SKILL.md) 执行其完整工作流：
        - 完全遵循 git-commit-helper 内部的全部交互逻辑和分支决策；
