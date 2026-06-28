@@ -4,14 +4,11 @@
 # JSON 格式输出到 stdout
 set -euo pipefail
 
-# Check if jq is available (all scripts depend on jq for JSON processing)
-if ! command -v jq &>/dev/null; then
-  echo "{\"error\":\"jq is required but not installed\"}"
-  exit 1
-fi
+# shellcheck source=scripts/lib/common.sh
+. "$(dirname "$0")/lib/common.sh"
+require_jq
 
 WORK_DIR=$(pwd)
-REPO_NAME=$(basename "$WORK_DIR")
 BACKUP_DIR="${WORK_DIR}.bak.$(date +'%Y%m%dT%H%M%S')"
 OUTPUT='{}'
 

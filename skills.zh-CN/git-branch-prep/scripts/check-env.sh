@@ -65,18 +65,6 @@ check_conflict() {
   fi
 }
 
-# 检测是否处于游离 HEAD 状态
-check_detached_head() {
-  local branch
-  branch=$(git branch --show-current 2>/dev/null || true)
-  if [ -z "$branch" ]; then
-    CHECKS=$(echo "$CHECKS" | jq -c '. + [{"name": "detached-head", "passed": false, "detail": "HEAD is detached"}]')
-    ALL_PASSED=false
-  else
-    CHECKS=$(echo "$CHECKS" | jq -c --arg b "$branch" '. + [{"name": "detached-head", "passed": true, "detail": $b}]')
-  fi
-}
-
 # 执行 git add -A 后检查暂存区变更
 check_has_changes() {
   git add -A 2>/dev/null || true
@@ -96,7 +84,6 @@ check_has_changes() {
 check_git_repo
 check_git_version
 check_conflict
-check_detached_head
 check_has_changes
 
 # 输出 JSON
