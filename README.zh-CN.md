@@ -6,12 +6,12 @@
 
 | 技能名称 | 描述 |
 |---------|------|
+| [changeset-gen](./skills/changeset-gen/SKILL.md) | 基于暂存变更分析受影响的包，自动生成 pnpm changeset 版本变更文件 |
 | [git-branch-prep](./skills/git-branch-prep/SKILL.md) | 调用 git-commit-helper 生成提交信息 → 提炼分支名 → 确认分支和推送 → 创建 PR 链接 |
-| [git-cleanup](./skills/git-cleanup/SKILL.md) | 清理 Git 仓库中废弃的分支和 Tag |
+| [git-cleanup](./skills/git-cleanup/SKILL.md) | 清理 Git 仓库中废弃的 Worktree、分支和 Tag |
 | [git-commit-helper](./skills/git-commit-helper/SKILL.md) | 遵循 Conventional Commits 规范智能生成 Git commit message |
 | [grill-me](./skills/grill-me/SKILL.md) | 持续追问拷问计划与设计，遍历决策树每个分支 |
 | [grill-me-lite](./skills/grill-me-lite/SKILL.md) | grill-me 的精简版，快速压力测试计划与设计 |
-| [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | pnpm monorepo 变更集文件自动生成与提交 |
 | [rush-to-nx](./skills/rush-to-nx/SKILL.md) | 将 Rush.js monorepo 迁移到 Nx + pnpm workspace + Changesets |
 | [skill-create](./skills/skill-create/SKILL.md) | 参照 skill-evolve 标准创建 agent 技能 |
 | [skill-evolve](./skills/skill-evolve/SKILL.md) | 优化 SKILL.md 结构、精简冗余、拆分参考文档 |
@@ -28,12 +28,12 @@
 npx skills add hz-9/skills
 
 # 仅安装指定技能
+npx skills add hz-9/skills --skill changeset-gen
 npx skills add hz-9/skills --skill git-branch-prep
 npx skills add hz-9/skills --skill git-cleanup
 npx skills add hz-9/skills --skill git-commit-helper
 npx skills add hz-9/skills --skill grill-me
 npx skills add hz-9/skills --skill grill-me-lite
-npx skills add hz-9/skills --skill pnpm-changeset-workflow
 npx skills add hz-9/skills --skill rush-to-nx
 npx skills add hz-9/skills --skill skill-create
 npx skills add hz-9/skills --skill skill-evolve
@@ -69,6 +69,7 @@ SKILLS_DIR=~/.qoder/skills bash <(curl -s https://raw.githubusercontent.com/hz-9
 |---------|------|
 | [git-workflow-enhanced](./deprecated/skills/git-workflow-enhanced/SKILL.md) | 已废弃，不再维护 |
 | [grill-with-docs](./deprecated/skills/grill-with-docs/SKILL.md) | 已废弃，不再维护 |
+| [pnpm-changeset-workflow](./skills/pnpm-changeset-workflow/SKILL.md) | 已废弃，建议改用 changeset-gen |
 | [write-a-skill](./deprecated/skills/write-a-skill/SKILL.md) | 已重命名为 skill-create，请改用新名称 |
 
 ## Commands
@@ -77,7 +78,13 @@ SKILLS_DIR=~/.qoder/skills bash <(curl -s https://raw.githubusercontent.com/hz-9
 
 | 命令 | 描述 |
 |------|------|
-| [git-ship](./commands/git-ship.md) | 基于暂存内容创建分支、生成提交信息并推送，最终输出 PR 链接 |
+| [review-and-fix-cycle](./commands/review-and-fix-cycle.md) | 对当前代码变更执行 Code Review，输出审查日志，修复问题并回归审查，直至收敛 |
+
+### Commands - 已废弃
+
+| 命令 | 描述 |
+|------|------|
+| [git-ship](./commands/git-ship.md) | 已废弃，建议改用 git-branch-prep |
 
 #### 使用脚本安装
 

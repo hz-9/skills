@@ -8,6 +8,204 @@ disable-model-invocation: true
 
 ## Overview
 
+Create an agent skill from scratch. Refer to the skill-evolve standard template to create SKILL.md and auxiliary directories. For uncertain decisions, use AskUserQuestion to confirm with the user. Once created, it can be handed over to skill-evolve for further optimization.
+
+## Definitions
+
+- <a id="标准模板结构"></a>**Standard Template Structure**: A structure containing eight standard sections: Overview, Definitions, Prerequisites, Workflow, Rules, Examples, Review List, References;
+- <a id="引用层次"></a>**Reference Level**: SKILL.md directly links files under `references/` as one level; files in `references/` should not link to external resources;
+- <a id="Secure-步骤"></a>**Secure Steps**: Three standardized steps that always appear in the Workflow: Pre-check (first step), Review check (second-to-last step), Output results (last step);
+
+## Prerequisites
+
+- `skill-evolve` is installed (this skill depends on its `template.md` and `directory-structure.md`);
+- The problem the skill needs to solve and the scenario in which it will be triggered must be clearly defined;
+- Relevant knowledge in the domain is required.
+
+## Workflow
+
+0. **Pre-check** -- Confirm that skill-evolve's `template.md` and `directory-structure.md` are accessible;
+  - Check whether `template.md` and `directory-structure.md` exist and are readable:
+    - Yes -> next step;
+    - No -> report missing files, terminate flow;
+  - Check whether the target skill directory name already exists:
+    - Yes -> check whether SKILL.md already exists:
+      - Yes -> Provide options via AskUserQuestion, block and wait for user selection:
+        - Overwrite existing file -> overwrite and proceed to next step;
+        - Terminate -> terminate flow;
+      - No -> next step;
+    - No -> next step;
+1. **Collect requirements** -- Gather skill information via AskUserQuestion;
+  - Provide options via AskUserQuestion, block and wait for user selection:
+    - [Dynamic options, AI generates up to 4 questions based on requirements] -> record answers, proceed to next step after execution;
+2. **Create directory structure** -- Create files and folders following the [Directory Structure Standard](../skill-evolve/references/directory-structure.md);
+  - Check whether at least `SKILL.md` has been created:
+    - Yes -> next step;
+    - No -> create `SKILL.md`, proceed to next step after execution;
+3. **Draft SKILL.md** -- Organize content according to the template;
+  - Organize content following the standard section order by referring to the [SKILL Template](../skill-evolve/template.md);
+  - description must follow the format requirements in Rules;
+  - Add guidance text for each section to help AI understand the purpose of that section;
+  - Check whether the line count exceeds 300 lines:
+    - Yes -> split into `references/`, proceed to next step after execution;
+    - No -> next step;
+4. **Add auxiliary directories** -- Evaluate and create auxiliary directories via AskUserQuestion;
+  - If `references/` was already created in step 3 due to line splitting, skip the `references/` check;
+  - Ask the user via AskUserQuestion whether the following directories are needed, confirming one by one:
+    - Is `references/` directory needed:
+      - Yes -> create `references/` directory, continue to next check;
+      - No -> skip, continue to next check;
+    - Is `scripts/` directory needed:
+      - Yes -> create `scripts/` directory, continue to next check;
+      - No -> skip, continue to next check;
+    - Is `assets/` directory needed:
+      - Yes -> create `assets/` directory, continue to next check;
+      - No -> skip, continue to next check;
+    - Is `schemas/` directory needed:
+      - Yes -> create `schemas/` directory, continue to next check;
+      - No -> skip, continue to next check;
+    - Is `tests/` directory needed:
+      - Yes -> create `tests/` directory, proceed to next step after execution;
+      - No -> next step;
+5. **Review with user** -- Present draft and confirm;
+  - Provide options via AskUserQuestion, block and wait for user selection:
+    - No modifications needed, approved -> next step;
+    - Requires modifications followed by re-review -> modify based on feedback and return to step 5 (max 3 revisions within the same round, auto-proceed to next step if exceeded);
+    - Unsatisfied, redraft -> return to step 3;
+6. **Review check** -- Verify the creation result against the [Review List](#review-list);
+  - Check whether the Review List has content:
+    - No -> directly proceed to next step (Output results);
+    - Yes -> next step;
+  - Check each item in the [Review List](#review-list) one by one to see if it passes:
+    - Yes -> continue to next check item;
+    - No -> record the failed check item (display output based on the "Review Check Example"), continue to next check item;
+  - Check whether any check item failed:
+    - Yes -> terminate flow;
+    - No -> proceed to next step (Output results);
+7. **Output results** -- Output a structured summary informing that creation is complete;
+  - Output a structured summary (created files, line count, overwritten directories, auxiliary directories, etc.);
+  - Inform the user that creation is complete;
+
+## Rules
+
+- description must follow the format: first sentence describes the skill's capability, second sentence describes the trigger condition ("Use when..."), use third-person perspective, no more than 1024 characters;
+- SKILL.md must not exceed 300 lines; if exceeded, split into `references/`;
+- Reference level must not exceed one level (SKILL.md links files under `references/` as one level; `references/` should not link to external resources);
+- Remove any time-sensitive information; keep terminology consistent;
+- Include concrete examples with values consistent with the rules;
+- All interactive steps involving user decisions **must** use the `AskUserQuestion` tool; plain text follow-up questions are prohibited; pass questions and options to AskUserQuestion in a structured manner, with no more than 4 questions per call;
+- Any uncertainty during the creation process (skill name, description content, whether auxiliary directories are needed, content trade-offs, etc.) **must** be confirmed with the user via AskUserQuestion; making assumptions independently is prohibited;
+- Review List check items must cover all constraint rules in Rules, ensuring one-to-one correspondence between Rules and Review List;
+
+## Examples
+
+### Dialogue Interaction Example
+
+**Example: AI auto-triggers based on trigger condition**
+
+```markdown
+User > I want a skill to auto-clean local Git branches
+AI   > Detected that the user needs to write a new skill, triggering skill-create
+AI   > Starting requirements collection: What task/domain does this skill involve?
+User > Help me list merged local branches and safely delete them
+AI   > Do you need executable scripts?
+User > No
+AI   > Any reference materials?
+User > No
+AI   > Drafting SKILL.md based on template structure...
+AI   > Please review the draft. Does this cover your use case?
+User > Looks good
+```
+
+### Review Check Example
+
+**Example: All review checks passed**
+
+```markdown
+AI > Entering review check, verifying against the Review List item by item:
+
+- name field: skill-create ✅
+- description format: conforms to "Use when..." standard ✅
+- Structure alignment: all standard sections present ✅
+- Line count 150 (<300, no split needed) ✅
+- Examples wrapped in ```markdown code blocks ✅
+- Interaction standard: uses AskUserQuestion ✅
+
+✅ All passed, skill creation complete.
+```
+
+**Example: Review check failed and terminated**
+
+```markdown
+AI > Entering review check. Review List contains 13 items, starting verification:
+
+**Metadata check**
+  - 🟩 name field: skill-create, consistent with directory name
+  - 🟥 description format: missing "Use when..."
+
+**Content quality check**
+  - 🟩 SKILL.md 150 lines (<300)
+  - 🟥 Examples not wrapped in ```markdown code blocks
+
+**!!! The following checks failed !!!**
+  - 🟥 description format: missing "Use when..."
+  - 🟥 Example format: not wrapped in markdown code blocks
+
+Terminating flow. Recommend fixing and re-executing.
+```
+
+(AI will output all check item results one by one during runtime)
+
+### Output Example
+
+**Creation result example**
+
+```markdown
+| Dimension | Description |
+|-----------|-------------|
+| Created files | SKILL.md |
+| Structure | Aligned with all standard template sections |
+| Line count | 150 lines (<300) |
+| description format | Contains "Use when..." |
+| Interaction pattern | Uses AskUserQuestion |
+```
+
+## Review List
+
+After creation is complete, verify the following:
+
+- **Metadata check**
+  - [ ] name field: exists with correct content, consistent with the directory name where SKILL.md is located
+  - [ ] description format: first sentence describes the skill's capability, second sentence describes the trigger condition ("Use when..."), uses third-person perspective, no more than 1024 characters
+- **Content quality check**
+  - [ ] SKILL.md does not exceed 300 lines
+  - [ ] No time-sensitive information (dates, version numbers, etc. have been removed)
+  - [ ] Content quality: terminology consistent, includes concrete examples with values consistent with the rules
+  - [ ] Example format: all examples wrapped in ```markdown code blocks
+- **Reference check**
+  - [ ] Reference level does not exceed one level
+  - [ ] No dead links
+- **Self-consistency check**
+  - [ ] All standard sections are present (Overview, Definitions, Prerequisites, Workflow, Rules, Examples, Review List, References)
+  - [ ] Secure steps are complete (Pre-check, Review check, Output results)
+  - [ ] Interaction standard: all user decision interactions use AskUserQuestion; plain text follow-up questions are prohibited; each AskUserQuestion call contains no more than 4 questions with structured options
+  - [ ] No independent assumptions: any uncertainty during the creation process must be confirmed with the user via AskUserQuestion; AI making assumptions independently is prohibited
+  - [ ] Self-consistency: Review List check items correspond one-to-one with Rules constraint rules, no omissions
+
+## References
+
+- [SKILL Directory Structure](../skill-evolve/references/directory-structure.md): Defines the skill directory structure standard and auxiliary directory specifications
+- [SKILL Template](../skill-evolve/template.md): Standard skill template containing responsibility descriptions and writing guidelines for all standard sections
+---
+name: skill-create
+description: Create a new agent skill following the skill-evolve standard. Use when the user needs to create, write, or build a new skill.
+disable-model-invocation: true
+---
+
+# Skill Create
+
+## Overview
+
 Create an agent skill from scratch. Create SKILL.md and auxiliary directories following the skill-evolve standard template. For uncertain decisions, ask the user via AskUserQuestion for confirmation. After creation, it can be further optimized by skill-evolve.
 
 ## Definitions

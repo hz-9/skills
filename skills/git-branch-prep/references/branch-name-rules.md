@@ -4,7 +4,7 @@
 
 Commit message format: `<type>(<scope>): <subject>`
 
-| 部分    | 提取方式              | 示例                                     |
+| Part    | Extraction Method     | Example                                  |
 | ------- | --------------------- | ---------------------------------------- |
 | type    | Word before the first `/` | `feat`                                   |
 | scope   | Content inside parentheses (optional) | `auth`                                   |
@@ -19,7 +19,7 @@ Branch name concatenation rules:
 
 ## Complexity Examples
 
-| Commit Message                                              | 分支名                                   |
+| Commit Message                                              | Branch Name                              |
 | ----------------------------------------------------------- | ---------------------------------------- |
 | `fix(parser): handle null pointer exception in JSON parser` | `fix/handle-null-pointer-in-json-parser` |
 | `feat(api): add pagination support for user list endpoint`  | `feat/add-pagination-for-user-list`      |
@@ -30,11 +30,11 @@ Branch name concatenation rules:
 ## Auto Inference Examples
 
 ``` markdown
-变更：添加了用户登录功能和 JWT 认证
-→ 生成 message：feat(auth): add user login with JWT authentication
-→ 分支：feat/add-user-login-with-jwt-authentication
+Changes: Added user login functionality and JWT authentication
+→ Generated message: feat(auth): add user login with JWT authentication
+→ Branch: feat/add-user-login-with-jwt-authentication
 
-变更：修复了日期格式化时区问题
-→ 生成 message：fix(utils): correct date formatting in timezone conversion
-→ 分支：fix/correct-date-formatting-in-timezone
+Changes: Fixed date formatting timezone issue
+→ Generated message: fix(utils): correct date formatting in timezone conversion
+→ Branch: fix/correct-date-formatting-in-timezone
 ```
