@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 # Git Cleanup 全面扫描脚本
 # 一次性扫描所有类别废弃引用，输出三个独立 JSON
-# 参数：--main-branch <名称> 指定主分支名
+# 参数：--main-branch <名称> --protected-branches <名称列表>
 set -euo pipefail
 
-# Check if jq is available (all scripts depend on jq for JSON processing)
-if ! command -v jq &>/dev/null; then
-  echo "{\"error\":\"jq is required but not installed\"}"
-  exit 1
-fi
+# shellcheck source=scripts/lib/common.sh
+. "$(dirname "$0")/lib/common.sh"
+require_jq
 
 MAIN_BRANCH=""
+PROTECTED_BRANCHES=""
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --main-branch) MAIN_BRANCH="$2"; shift 2 ;;
+    --protected-branches) PROTECTED_BRANCHES="$2"; shift 2 ;;
     *) echo "{\"error\":\"unknown option: $1\"}"; exit 1 ;;
   esac
 done
@@ -23,25 +24,64 @@ if [ -z "$MAIN_BRANCH" ]; then
   exit 1
 fi
 
+if [ -z "$PROTECTED_BRANCHES" ]; then
+  # 默认保护分支列表，与 references/protected-branch.md 保持一致
+  PROTECTED_BRANCHES="dev,stage,staging,prod,master,main"
+fi
+
+# 统一过滤：判断分支是否应从废弃候选列表中排除
+# 排除条件：Worktree 绑定分支、受保护分支、当前检出分支
+# 参数：(1) 分支名 (2) worktree 绑定分支列表 (3) 当前检出分支
+is_excluded_branch() {
+  local branch="$1"
+  local wt_branches="$2"
+  local cur_branch="$3"
+  [ -z "$branch" ] && return 0
+  # 跳过 Worktree 绑定的分支
+  if echo "$wt_branches" | grep -q -F -x "$branch"; then return 0; fi
+  # 跳过受保护分支
+  if is_protected_branch "$branch" "$PROTECTED_BRANCHES"; then return 0; fi
+  # 跳过当前检出分支（仅在非空时比较）
+  if [ -n "$cur_branch" ] && [ "$branch" = "$cur_branch" ]; then return 0; fi
+  return 1
+}
+
 # 扫描 Worktree
 scan_worktree() {
   local current_wt
   current_wt=$(git worktree list --porcelain 2>/dev/null | head -1 | sed 's/^worktree //' || echo "")
   local worktrees='[]'
   while IFS= read -r line; do
-    if [[ "$line" =~ ^worktree (.*) ]]; then
+    local wt_re='^worktree (.*)'
+    if [[ "$line" =~ $wt_re ]]; then
       local path="${BASH_REMATCH[1]}"
       local branch=""
       # 读取 HEAD 行（跳过）
       read -r head_line
       # 读取下一行，可能是 branch 行或空行（detached HEAD）
       read -r next_line
-      if [[ "$next_line" =~ ^branch refs/heads/(.*) ]]; then
+      local br_re='^branch refs/heads/(.*)'
+      if [[ "$next_line" =~ $br_re ]]; then
         branch="${BASH_REMATCH[1]}"
       fi
       local is_current=false
       [ "$path" = "$current_wt" ] && is_current=true
-      worktrees=$(echo "$worktrees" | jq -c --arg p "$path" --arg b "$branch" --argjson c "$is_current" '. + [{"path": $p, "branch": $b, "is_current": $c}]')
+
+      # 检测非当前 Worktree 是否存在未提交变更（脏状态）
+      local is_dirty=false
+      if [ "$is_current" = false ] && [ -d "$path" ]; then
+        local dirty_count
+        dirty_count=$(git -C "$path" status --porcelain 2>/dev/null | wc -l | tr -d ' ' || true)
+        dirty_count=${dirty_count:-0}
+        [ "$dirty_count" -gt 0 ] && is_dirty=true
+      fi
+
+      worktrees=$(echo "$worktrees" | jq -c \
+        --arg p "$path" \
+        --arg b "$branch" \
+        --argjson c "$is_current" \
+        --argjson d "$is_dirty" \
+        '. + [{"path": $p, "branch": $b, "is_current": $c, "is_dirty": $d}]')
     fi
   done < <(git worktree list --porcelain 2>/dev/null || echo "")
 
@@ -50,6 +90,8 @@ scan_worktree() {
 
 # 扫描分支
 scan_branches() {
+  local current_branch
+  current_branch=$(git branch --show-current)
   local branches='[]'
   local worktree_branches
   worktree_branches=$(git worktree list --porcelain 2>/dev/null | grep "^branch refs/heads/" | sed 's|^branch refs/heads/||' || echo "")
@@ -57,17 +99,14 @@ scan_branches() {
   # 已合并分支
   while IFS= read -r branch; do
     [ -z "$branch" ] && continue
-    # 跳过保护分支、当前分支、worktree 绑定分支
-    if echo "$worktree_branches" | grep -q -F "$branch"; then continue; fi
-    if [ "$branch" = "$MAIN_BRANCH" ] || [ "$branch" = "develop" ] || [ "$branch" = "$(git branch --show-current)" ]; then continue; fi
+    if is_excluded_branch "$branch" "$worktree_branches" "$current_branch"; then continue; fi
     branches=$(echo "$branches" | jq -c --arg b "$branch" --arg t "merged" --arg r "merged into $MAIN_BRANCH" '. + [{"name": $b, "type": $t, "reason": $r}]')
   done < <(git branch --merged "$MAIN_BRANCH" --format='%(refname:short)' 2>/dev/null || echo "")
 
   # 孤儿分支
   while IFS= read -r branch; do
     [ -z "$branch" ] && continue
-    if echo "$worktree_branches" | grep -q -F "$branch"; then continue; fi
-    if [ "$branch" = "$MAIN_BRANCH" ] || [ "$branch" = "develop" ] || [ "$branch" = "$(git branch --show-current)" ]; then continue; fi
+    if is_excluded_branch "$branch" "$worktree_branches" "$current_branch"; then continue; fi
     local exists=false
     exists=$(echo "$branches" | jq --arg b "$branch" '[.[] | select(.name == $b)] | length > 0' 2>/dev/null || echo "false")
     if [ "$exists" = "false" ]; then
