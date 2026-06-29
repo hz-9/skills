@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: skills_zh_cn
+title: 中文 Agent 技能库与进化规范
+scope:
+    - skills.zh-CN/
+source_files: []
+depends_on: []
+related_to: []

@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: skills_en
+title: AI Agent 技能库与标准化框架
+scope:
+    - skills/
+source_files: []
+depends_on: []
+related_to: []

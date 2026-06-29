@@ -1,0 +1,13 @@
+schema_version: 1
+module_path: dependency_management
+title: AI Agent 技能分发与 Monorepo 依赖迁移规范
+scope: []
+source_files:
+    - scripts/install-skills.sh
+    - scripts/install-commands.sh
+    - skills/changeset-gen/SKILL.md
+    - skills/rush-to-nx/SKILL.md
+    - skills/changeset-gen/scripts/check-env.sh
+    - README.md
+depends_on: []
+related_to: []

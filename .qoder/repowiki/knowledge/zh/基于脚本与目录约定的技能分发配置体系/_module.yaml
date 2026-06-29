@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: configuration_system
+title: 基于脚本与目录约定的技能分发配置体系
+scope: []
+source_files:
+    - scripts/install-skills.sh
+    - scripts/install-commands.sh
+    - skills/changeset-gen/scripts/check-env.sh
+    - skills/git-branch-prep/scripts/check-env.sh
+    - README.md
+depends_on: []
+related_to: []

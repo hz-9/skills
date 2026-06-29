@@ -1,0 +1,109 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: master
+nodes_managed: true
+exported_at: "2026-06-28T12:19:13Z"
+modules:
+    "":
+        dir_name: AI Agent 技能与命令分发中心
+        title: AI Agent 技能与命令分发中心
+        scope:
+            - README.md
+            - README.zh-CN.md
+            - .gitignore
+            - .markdownlint.json
+            - scripts/
+            - templates/
+            - commands/
+            - commands.zh-CN/
+            - deprecated/
+            - LICENSE
+        source_files: []
+        children:
+            - inbox_skills
+            - skills_en
+            - skills_zh_cn
+        depends_on: []
+        related_to: []
+    build_system:
+        dir_name: 基于 Shell 脚本的 Agent 技能分发与安装体系
+        title: 基于 Shell 脚本的 Agent 技能分发与安装体系
+        scope: []
+        source_files:
+            - scripts/install-skills.sh
+            - scripts/install-commands.sh
+            - scripts/install-skills-local.sh
+            - scripts/install-commands-local.sh
+            - README.md
+        children: []
+        depends_on: []
+        related_to: []
+    configuration_system:
+        dir_name: 基于脚本与目录约定的技能分发配置体系
+        title: 基于脚本与目录约定的技能分发配置体系
+        scope: []
+        source_files:
+            - scripts/install-skills.sh
+            - scripts/install-commands.sh
+            - skills/changeset-gen/scripts/check-env.sh
+            - skills/git-branch-prep/scripts/check-env.sh
+            - README.md
+        children: []
+        depends_on: []
+        related_to: []
+    dependency_management:
+        dir_name: AI Agent 技能分发与 Monorepo 依赖迁移规范
+        title: AI Agent 技能分发与 Monorepo 依赖迁移规范
+        scope: []
+        source_files:
+            - scripts/install-skills.sh
+            - scripts/install-commands.sh
+            - skills/changeset-gen/SKILL.md
+            - skills/rush-to-nx/SKILL.md
+            - skills/changeset-gen/scripts/check-env.sh
+            - README.md
+        children: []
+        depends_on: []
+        related_to: []
+    error_handling:
+        dir_name: AI Agent 技能库错误处理与诊断规范
+        title: AI Agent 技能库错误处理与诊断规范
+        scope: []
+        source_files:
+            - skills/git-branch-prep/references/error-handling.md
+            - skills/git-branch-prep/scripts/check-env.sh
+            - skills/changeset-gen/scripts/check-env.sh
+            - inbox/skills/diagnose/SKILL.md
+            - inbox/skills/diagnose/scripts/hitl-loop.template.sh
+            - skills/git-branch-prep/SKILL.md
+        children: []
+        depends_on: []
+        related_to: []
+    inbox_skills:
+        dir_name: AI 代理工程技能库
+        title: AI 代理工程技能库
+        scope:
+            - inbox/skills/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    skills_en:
+        dir_name: AI Agent 技能库与标准化框架
+        title: AI Agent 技能库与标准化框架
+        scope:
+            - skills/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    skills_zh_cn:
+        dir_name: 中文 Agent 技能库与进化规范
+        title: 中文 Agent 技能库与进化规范
+        scope:
+            - skills.zh-CN/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

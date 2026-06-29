@@ -1,0 +1,13 @@
+schema_version: 1
+module_path: error_handling
+title: AI Agent 技能库错误处理与诊断规范
+scope: []
+source_files:
+    - skills/git-branch-prep/references/error-handling.md
+    - skills/git-branch-prep/scripts/check-env.sh
+    - skills/changeset-gen/scripts/check-env.sh
+    - inbox/skills/diagnose/SKILL.md
+    - inbox/skills/diagnose/scripts/hitl-loop.template.sh
+    - skills/git-branch-prep/SKILL.md
+depends_on: []
+related_to: []

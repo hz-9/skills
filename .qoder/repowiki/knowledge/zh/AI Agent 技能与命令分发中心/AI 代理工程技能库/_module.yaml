@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: inbox_skills
+title: AI 代理工程技能库
+scope:
+    - inbox/skills/
+source_files: []
+depends_on: []
+related_to: []
